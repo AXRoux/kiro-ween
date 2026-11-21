@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Accessibility review on UI save",
+      "trigger": "PostFileSave",
+      "description": "Every saved component is checked against the accessibility steering before the agent moves on.",
+      "matcher": "src/(components/.*\\.tsx|App\\.tsx|styles/.*\\.css)$",
+      "action": {
+        "type": "agent",
+        "prompt": "A UI file was just saved. Check it against .kiro/steering/accessibility.md: is every visible state also spoken or announced, does every new control have a key and a visible focus ring, are decorative layers aria-hidden and stopped under prefers-reduced-motion, is body text Atkinson Hyperlegible at 18px or more, is colour never the only signal? Fix anything that fails before continuing."
+      }
+    }
+  ]
+}

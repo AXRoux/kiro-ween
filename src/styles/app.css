@@ -1,0 +1,32 @@
+.app { position: relative; min-height: 100vh; }
+.app > :not(.atmos) { position: relative; z-index: 1; }
+
+.app__head {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px;
+  max-width: 1320px; margin: 0 auto; padding: 22px clamp(16px, 3vw, 36px) 6px;
+}
+.app__title {
+  margin: 0;
+  font: 700 clamp(1.7rem, 3vw, 2.3rem)/1 var(--display);
+  background: linear-gradient(180deg, #fffaf0 10%, #f6dc92 60%, #b37a2a 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 20px rgba(255,179,71,.3));
+}
+.app__title span { font-size: .55em; vertical-align: .35em; }
+.app__status { display: inline-flex; align-items: center; gap: 10px; margin: 0; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.35); border: 1px solid rgba(246, 220, 146, .18); color: var(--bone-2); font-size: 1.05rem; }
+.app__status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--verdict); box-shadow: 0 0 10px var(--verdict); animation: breathe 2.4s ease-in-out infinite; }
+.app__tools { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.app__main {
+  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 44px); align-items: start;
+  max-width: 1320px; margin: 0 auto; padding: 18px clamp(16px, 3vw, 36px) 20px;
+}
+.app__side { display: grid; gap: 20px; }
+
+.app__foot { max-width: 1320px; margin: 0 auto; padding: 8px clamp(16px, 3vw, 36px) 40px; color: var(--bone-3); font-size: 1rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 30px; }
+.app__foot p { margin: 0; max-width: 70ch; }
+.app__foot a { color: var(--gold-hi); }
+
+@media (max-width: 980px) {
+  .app__main { grid-template-columns: minmax(0, 1fr); }
+}

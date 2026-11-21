@@ -1,0 +1,24 @@
+# Tasks: candy scanner
+
+- [x] 1. Pure core
+  - [x] 1.1 `types.ts`, `allergens.ts` with synonyms and Open Food Facts tag mapping (Req 3.1, 6.1)
+  - [x] 1.2 `verdict.ts` with the five rules, unit tested (Req 5.1)
+  - [x] 1.3 `phrasing.ts`: summary, details, haul, guidance, unit tested (Req 4, 7.2)
+  - [x] 1.4 `motion.ts`: luma downscale, frame difference, brightness, stillness detector, unit tested (Req 2.1, 2.3, 2.4)
+  - [x] 1.5 `haul.ts` (Req 7.1)
+- [x] 2. Server
+  - [x] 2.1 `/api/identify`: validate the data URL and size, forced `report_candy` tool call, schema check (Req 3.2, 9)
+  - [x] 2.2 per-client rate limit, `/api/health`, static `dist/` (Req 9.1)
+  - [x] 2.3 server tests with a fake Anthropic (Req 9.2)
+- [x] 3. Browser adapters
+  - [x] 3.1 `camera.ts`, `barcode.ts` (WASM served locally), `openfoodfacts.ts`, `identify.ts` (Req 3)
+  - [x] 3.2 `voice.ts`, `sounds.ts`, `listen.ts` (Req 4, 5.2)
+- [x] 4. The costume
+  - [x] 4.1 `Gate`, `Atmosphere` (Req 1, 8.2)
+  - [x] 4.2 `Mirror` with runes, mist and candles (Req 2, design table)
+  - [x] 4.3 `SpiritBoard`, `Ghost`, `Haul`, `Settings` (Req 4, 5, 6, 7)
+  - [x] 4.4 `App` state machine, keys, voice commands, Announcer (Req 2.2, 4.4, 4.5, 8.1)
+- [x] 3.3 ElevenLabs voices on the server (`/api/speak`, George and Lily, cached), browser speech as fallback
+- [ ] 5. Ship
+  - [ ] 5.1 Deploy, and put the URL in the README
+  - [ ] 5.2 Record the demo video (under 3 minutes)

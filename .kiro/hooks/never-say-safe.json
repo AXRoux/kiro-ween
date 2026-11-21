@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Guard the safety wording",
+      "trigger": "PostFileSave",
+      "description": "Blocks wording that would tell a blind user something is safe when the app does not know.",
+      "matcher": "src/lib/phrasing\\.ts$",
+      "action": {
+        "type": "agent",
+        "prompt": "src/lib/phrasing.ts changed. Re-read .kiro/steering/product.md 'What matters' rule 1. Make sure no sentence says a candy is safe, allergen-free or fine to eat unless the verdict is Safe AND the facts came from label data; inferred allergens must be said as 'likely' and end with 'ask someone to check the label'. Run the phrasing tests."
+      }
+    }
+  ]
+}

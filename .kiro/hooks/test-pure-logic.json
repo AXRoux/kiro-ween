@@ -1,0 +1,12 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run unit tests when pure logic changes",
+      "trigger": "PostFileSave",
+      "description": "The verdict, phrasing, allergen and motion rules are what a blind user trusts; any change re-runs their tests.",
+      "matcher": "(src/lib/(types|allergens|verdict|phrasing|motion|haul)\\.ts|server/.*\\.ts|tests/.*\\.ts)$",
+      "action": { "type": "command", "command": "bun test 2>&1 | tail -25", "timeout": 120 }
+    }
+  ]
+}

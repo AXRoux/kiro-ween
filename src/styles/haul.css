@@ -1,0 +1,32 @@
+.haul {
+  padding: 18px 20px 20px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(42, 22, 56, .78), rgba(14, 8, 22, .86));
+  border: 1px solid rgba(246, 220, 146, .2);
+  box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
+  backdrop-filter: blur(6px);
+}
+.haul__head { display: flex; align-items: center; gap: 14px; }
+.cauldron { width: 76px; flex: none; overflow: visible; }
+.cauldron__num { font: 700 20px var(--engraved); fill: var(--ecto); }
+.cauldron__bubbles circle { fill: rgba(141, 255, 181, .8); animation: bubble 2.4s ease-in infinite; }
+.cauldron__bubbles circle:nth-child(2) { animation-delay: .8s; }
+.cauldron__bubbles circle:nth-child(3) { animation-delay: 1.5s; }
+@keyframes bubble { 0% { transform: translateY(10px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(-12px); opacity: 0; } }
+.haul__title { margin: 0; font: 700 1.5rem/1.1 var(--display); color: var(--gold-hi); }
+.haul__count { margin: 2px 0 0; color: var(--bone-2); }
+.haul__list { list-style: none; margin: 14px 0; padding: 0; display: grid; gap: 6px; max-height: 260px; overflow: auto; }
+.haul__item {
+  display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 12px; background: rgba(0, 0, 0, .3); border: 1px solid rgba(255,255,255,.06);
+}
+.haul__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ecto); box-shadow: 0 0 10px var(--ecto); }
+.haul__item[data-verdict="ask"] .haul__dot { background: var(--ember); box-shadow: 0 0 10px var(--ember); }
+.haul__item[data-verdict="beware"] .haul__dot { background: var(--blood); box-shadow: 0 0 10px var(--blood); }
+.haul__name { font-weight: 700; }
+.haul__times { color: var(--gold-hi); font-weight: 700; }
+.haul__mark { font: 600 .75rem/1 var(--engraved); letter-spacing: .1em; text-transform: uppercase; color: var(--bone-3); }
+.haul__item[data-verdict="beware"] .haul__mark { color: var(--blood); }
+.haul__item[data-verdict="ask"] .haul__mark { color: var(--ember); }
+.haul__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.brass--quiet { background: rgba(0,0,0,.3); color: var(--bone-2); border-color: rgba(244, 236, 217, .25); }
