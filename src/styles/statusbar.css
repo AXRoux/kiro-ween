@@ -1,0 +1,38 @@
+.statusbar {
+  position: relative;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  height: 52px; padding: 0 var(--s-5);
+}
+.statusbar__name { font: 700 var(--t-sm)/1 var(--read); color: var(--moon-2); letter-spacing: 0.01em; white-space: nowrap; transition: opacity 0.2s; }
+/* the island needs the room while it speaks, as on a phone */
+.statusbar:has(.island[data-speaking="true"]) .statusbar__name { opacity: 0; }
+.statusbar__dots { justify-self: end; display: flex; gap: 6px; align-items: center; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--night-5); }
+.dot--cam { background: #34d158; box-shadow: 0 0 8px rgba(52, 209, 88, 0.7); }
+.dot--mic { background: #ff9f0a; box-shadow: 0 0 8px rgba(255, 159, 10, 0.7); }
+
+/* ---- the island: a black pill that opens while the voice speaks ------------------------------------------ */
+.island {
+  position: relative;
+  display: flex; align-items: center; justify-content: center; gap: var(--s-2);
+  width: 112px; height: 34px; padding: 0 12px;
+  border: 0; border-radius: 999px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  cursor: default;
+  overflow: hidden;
+  transition: width 0.45s var(--spring), height 0.45s var(--spring), box-shadow 0.4s var(--ease);
+}
+.island__lens { position: absolute; right: 13px; width: 11px; height: 11px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #3a3550, #0b0a12 70%); box-shadow: inset 0 0 0 1.5px #16141d; transition: opacity 0.2s; }
+.island__wave { display: flex; align-items: center; gap: 3px; height: 20px; opacity: 0; transition: opacity 0.2s; }
+.island__wave i { display: block; width: 4px; height: 100%; border-radius: 2px; background: var(--verdict); transform: scaleY(0.25); }
+.island__label { font: 700 var(--t-sm)/1 var(--read); color: var(--moon); white-space: nowrap; opacity: 0; width: 0; transition: opacity 0.2s; }
+
+.island[data-speaking="true"] { width: 148px; height: 38px; cursor: pointer; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 22px var(--verdict-glow); }
+.island[data-speaking="true"] .island__lens { opacity: 0; }
+.island[data-speaking="true"] .island__wave { opacity: 1; }
+.island[data-speaking="true"] .island__wave i { animation: talk 0.9s ease-in-out infinite; }
+.island[data-speaking="true"] .island__label { opacity: 1; width: auto; }
+@keyframes talk { 0%, 100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
+/* with reduced motion the wave stands still at full height: still visibly "talking" */
+@media (prefers-reduced-motion: reduce) { .island[data-speaking="true"] .island__wave i { transform: scaleY(0.8); } }

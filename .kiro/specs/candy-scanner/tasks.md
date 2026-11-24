@@ -13,12 +13,14 @@
 - [x] 3. Browser adapters
   - [x] 3.1 `camera.ts`, `barcode.ts` (WASM served locally), `openfoodfacts.ts`, `identify.ts` (Req 3)
   - [x] 3.2 `voice.ts`, `sounds.ts`, `listen.ts` (Req 4, 5.2)
-- [x] 4. The costume
-  - [x] 4.1 `Gate`, `Atmosphere` (Req 1, 8.2)
-  - [x] 4.2 `Mirror` with runes, mist and candles (Req 2, design table)
-  - [x] 4.3 `SpiritBoard`, `Ghost`, `Haul`, `Settings` (Req 4, 5, 6, 7)
+- [x] 4. The costume: a phone app in a castle case
+  - [x] 4.1 `Castle` (the case, the window's silhouette), `Gate` (Open the gate) (Req 1, 8.2)
+  - [x] 4.2 `Arch`: the camera window as the Read button, portcullis, candlelight progress, step chip (Req 2, 10.1)
+  - [x] 4.3 `StatusBar` (island with Stop), `Verdict` card, `Dock` tiles, `Haul` and `Settings` sheets (Req 4, 5, 6, 7, 10)
   - [x] 4.4 `App` state machine, keys, voice commands, Announcer (Req 2.2, 4.4, 4.5, 8.1)
-- [x] 3.3 ElevenLabs voices on the server (`/api/speak`, George and Lily, cached), browser speech as fallback
+  - [x] 4.5 Low-vision pass: one type face for reading, verdict blocks, desktop zoom, phone and zoomed layout, axe clean
+  - [x] 4.6 Phones: verdict vibration patterns, screen wake lock (Req 5.3, 10.4)
+- [x] 3.3 ElevenLabs voices on the server (`/api/speak`, Serena and Ana, cached), browser speech as fallback
 - [ ] 5. Ship
   - [ ] 5.1 Deploy, and put the URL in the README
   - [ ] 5.2 Record the demo video (under 3 minutes)

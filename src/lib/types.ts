@@ -1,4 +1,4 @@
-/** The allergens a user can ask the mirror to watch for. */
+/** The allergens a user can ask the castle to watch for. */
 export type Allergen = "peanuts" | "tree nuts" | "milk" | "egg" | "soy" | "wheat" | "sesame" | "coconut";
 
 /** Where a fact came from. Label data is stated as fact; a vision read is "likely" unless printed on the wrapper. */

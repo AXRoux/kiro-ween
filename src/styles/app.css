@@ -1,32 +1,35 @@
-.app { position: relative; min-height: 100vh; }
-.app > :not(.atmos) { position: relative; z-index: 1; }
-
-.app__head {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px;
-  max-width: 1320px; margin: 0 auto; padding: 22px clamp(16px, 3vw, 36px) 6px;
+/* The page around the castle, and the screen inside it. */
+html, body { background: var(--night-0); }
+html.desktop, html.desktop body { background: transparent; overflow: hidden; }
+.app { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 44px 0 12px; overflow: auto; overflow-x: clip; }
+/* in a browser the castle stands on a hill under the moon */
+.app:not(.app--desktop):not(.app--bare) {
+  background:
+    radial-gradient(40% 30% at 78% 8%, rgba(220, 210, 255, 0.14), transparent 70%),
+    radial-gradient(120% 60% at 50% 120%, #1c1430, transparent 70%),
+    linear-gradient(180deg, #0b0916, #05040a);
+  background-attachment: fixed;
 }
-.app__title {
-  margin: 0;
-  font: 700 clamp(1.7rem, 3vw, 2.3rem)/1 var(--display);
-  background: linear-gradient(180deg, #fffaf0 10%, #f6dc92 60%, #b37a2a 100%);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 20px rgba(255,179,71,.3));
-}
-.app__title span { font-size: .55em; vertical-align: .35em; }
-.app__status { display: inline-flex; align-items: center; gap: 10px; margin: 0; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.35); border: 1px solid rgba(246, 220, 146, .18); color: var(--bone-2); font-size: 1.05rem; }
-.app__status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--verdict); box-shadow: 0 0 10px var(--verdict); animation: breathe 2.4s ease-in-out infinite; }
-.app__tools { display: flex; gap: 10px; flex-wrap: wrap; }
+.app--desktop { min-height: 0; height: 100vh; padding: 0; place-items: start; overflow: hidden; }
+.app--bare { display: block; padding: 0; background: var(--night-1); }
+.stage { position: relative; }
+.stage__inner { transform-origin: top left; }
 
-.app__main {
-  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 44px); align-items: start;
-  max-width: 1320px; margin: 0 auto; padding: 18px clamp(16px, 3vw, 36px) 20px;
+/*
+ * The screen: status bar / window / verdict (takes what's left, scrolls inside) / dock / home bar.
+ * In the case it is exactly 392 x 752; bare, it is as tall as its content needs.
+ */
+.screen {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  gap: 10px;
+  height: 100%;
+  background:
+    radial-gradient(90% 40% at 50% 100%, rgba(120, 80, 200, 0.12), transparent 70%),
+    var(--night-1);
 }
-.app__side { display: grid; gap: 20px; }
-
-.app__foot { max-width: 1320px; margin: 0 auto; padding: 8px clamp(16px, 3vw, 36px) 40px; color: var(--bone-3); font-size: 1rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 30px; }
-.app__foot p { margin: 0; max-width: 70ch; }
-.app__foot a { color: var(--gold-hi); }
-
-@media (max-width: 980px) {
-  .app__main { grid-template-columns: minmax(0, 1fr); }
-}
+/* On a phone the screen is exactly the viewport, so the dock never moves; the card scrolls inside. Zoomed so far that
+   it won't fit (under 620px tall), the page scrolls instead. */
+.castle--bare .screen { height: 100dvh; min-height: 620px; padding: env(safe-area-inset-top) env(safe-area-inset-right) max(8px, env(safe-area-inset-bottom)) env(safe-area-inset-left); }
+.castle--bare .screen__home { display: block; height: 0; margin: 0; }
+.screen__home { justify-self: center; width: 134px; height: 5px; margin: 2px 0 8px; border-radius: 3px; background: rgba(243, 239, 255, 0.55); }

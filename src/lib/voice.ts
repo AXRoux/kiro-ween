@@ -1,14 +1,17 @@
 /**
- * The mirror's voice. Natural speech from ElevenLabs through our server (/api/speak): George, a warm storyteller
- * (the default, the clearest), or Lily, a velvety medium. If the server has no voice key, or the request fails, the
+ * The castle's voice. Natural speech from ElevenLabs through our server (/api/speak): Serena, a warm young Brazilian
+ * woman (the default), or Ana, calmer and more measured. If the server has no voice key, or the request fails, the
  * browser's own speech takes over so the user is never left in silence.
  * A new sentence always replaces the one being spoken: a fresh result matters more than the end of an old one.
  */
-export type VoiceStyle = "clear" | "spirit";
+export type VoiceStyle = "serena" | "ana";
+export const VOICE_NAMES: Record<VoiceStyle, string> = { serena: "Serena", ana: "Ana" };
+/** Earlier versions stored other voice names; anything unknown becomes the default. */
+export const asVoiceStyle = (v: unknown): VoiceStyle => (v === "ana" ? "ana" : "serena");
 
 type Listener = (speaking: boolean) => void;
 const listeners = new Set<Listener>();
-let style: VoiceStyle = (localStorage.getItem("tor.voice") as VoiceStyle | null) ?? "clear";
+let style: VoiceStyle = asVoiceStyle(localStorage.getItem("tor.voice"));
 let rate = Number(localStorage.getItem("tor.rate") ?? "1") || 1;
 /** null until /api/health answers; then whether the server can speak. */
 let serverVoice: boolean | null = null;
@@ -24,7 +27,9 @@ let browserVoice: SpeechSynthesisVoice | null = null;
 function pickBrowserVoice(): SpeechSynthesisVoice | null {
   if (!browserSpeech()) return null;
   const voices = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith("en"));
-  const rank = (v: SpeechSynthesisVoice) => (/natural|neural|enhanced|premium/i.test(v.name) ? 4 : 0) + (/samantha|daniel|google uk english|aria|jenny/i.test(v.name) ? 2 : 0) + (v.default ? 1 : 0);
+  // Closest to the castle's own voices: a natural-sounding English woman.
+  const rank = (v: SpeechSynthesisVoice) =>
+    (/natural|neural|enhanced|premium/i.test(v.name) ? 4 : 0) + (/samantha|ava|allison|susan|zoe|jenny|aria|google us english|zira|female/i.test(v.name) ? 2 : 0) + (v.default ? 1 : 0);
   return voices.sort((a, b) => rank(b) - rank(a))[0] ?? null;
 }
 if (browserSpeech()) {
@@ -85,8 +90,7 @@ function playBrowser(text: string): Promise<void> {
     const u = new SpeechSynthesisUtterance(text);
     if (browserVoice) u.voice = browserVoice;
     u.lang = browserVoice?.lang ?? "en-US";
-    u.rate = style === "spirit" ? rate * 0.9 : rate;
-    u.pitch = style === "spirit" ? 0.75 : 1;
+    u.rate = style === "ana" ? rate * 0.92 : rate;
     let finished = false;
     const done = () => {
       if (finished) return;
@@ -95,7 +99,7 @@ function playBrowser(text: string): Promise<void> {
       emit(false);
       resolve();
     };
-    // Some browsers never fire onend for long sentences: never leave the mirror waiting.
+    // Some browsers never fire onend for long sentences: never leave the castle waiting.
     const fallback = setTimeout(done, 2500 + (text.length * 85) / u.rate);
     current = { cancel: () => (speechSynthesis.cancel(), done()) };
     u.onstart = () => emit(true);
@@ -110,7 +114,7 @@ export const voice = {
     return style;
   },
   setStyle(s: VoiceStyle) {
-    style = s;
+    style = asVoiceStyle(s);
     localStorage.setItem("tor.voice", s);
   },
   get rate() {

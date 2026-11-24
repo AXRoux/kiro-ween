@@ -1,0 +1,97 @@
+/*
+ * Sheets (Settings, Your haul): they slide up from the bottom like a phone's, with grouped rows.
+ * Native <dialog>, so focus is trapped inside and Esc closes them.
+ */
+.sheet {
+  width: min(560px, 100vw);
+  max-width: 100vw;
+  max-height: calc(100dvh - 24px);
+  margin: auto auto 0;
+  padding: 0;
+  border: 1px solid var(--night-4);
+  border-bottom: 0;
+  border-radius: 28px 28px 0 0;
+  background: var(--night-1);
+  color: var(--moon);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.7);
+  overscroll-behavior: contain;
+}
+.sheet[open] { animation: slide-up 0.38s var(--ease); }
+@keyframes slide-up { from { transform: translateY(40%); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet::backdrop { background: rgba(4, 3, 8, 0.72); }
+/* the desktop app's window is the castle: the sheet covers just its screen, and nothing dims the transparent air */
+html.desktop .sheet { width: 392px; max-height: 704px; margin-bottom: 66px; /* the case below the screen */ border-radius: 28px 28px 42px 42px; border-bottom: 1px solid var(--night-4); }
+html.desktop .sheet::backdrop { background: transparent; }
+
+.sheet__page { display: grid; gap: var(--s-5); padding: var(--s-2) var(--s-4) var(--s-5); }
+.sheet__grabber { justify-self: center; width: 40px; height: 5px; border-radius: 3px; background: var(--night-5); }
+.sheet__head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); }
+.sheet__head h2 { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: var(--s-3); font: 700 var(--t-2xl)/1.1 var(--read); }
+.sheet__head .btn { min-height: 48px; padding: 0 var(--s-3) 0 var(--s-4); }
+.sheet__count { font: 700 var(--t-md)/1 var(--read); color: var(--moon-3); }
+
+.sheet__set { margin: 0; padding: 0; border: 0; display: grid; gap: var(--s-3); min-width: 0; }
+.sheet__set legend { padding: 0 var(--s-2) var(--s-2); font: 700 var(--t-md)/1.2 var(--read); color: var(--moon-3); }
+.sheet__hint { padding: 0 var(--s-2); color: var(--moon-3); }
+.sheet__group {
+  margin: 0; padding: 0; list-style: none;
+  border-radius: var(--radius-lg);
+  background: var(--night-2);
+  border: 1px solid var(--night-4);
+  overflow: hidden;
+}
+.sheet__actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+
+/* ---- rows: a whole row is the touch target -------------------------------------------------------------- */
+.row {
+  position: relative;
+  display: flex; align-items: center; gap: var(--s-3);
+  min-height: 60px; padding: var(--s-2) var(--s-4);
+  cursor: pointer;
+}
+.row + .row { border-top: 1px solid var(--night-4); }
+.row__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.row__label { font-weight: 700; }
+.row__detail { color: var(--moon-3); line-height: 1.3; }
+.row input:not([type="range"]) { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.row:has(input:focus-visible) { outline: 3px solid #fff; outline-offset: -3px; box-shadow: inset 0 0 0 7px rgba(0, 0, 0, 0.9); }
+.row[aria-disabled="true"] { cursor: not-allowed; }
+.row[aria-disabled="true"] .row__label { color: var(--moon-3); }
+
+/* a switch, like a phone's: grey off, green on, with the knob moving across */
+.switch { flex: none; position: relative; width: 54px; height: 32px; border-radius: 999px; background: var(--night-5); transition: background 0.2s var(--ease); }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4); transition: transform 0.25s var(--spring); }
+.row input:checked ~ .switch { background: #34d158; }
+.row input:checked ~ .switch::after { transform: translateX(22px); }
+/* a tick for lists you choose several from (or one, when round) */
+.tick { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; border: 2px solid var(--night-5); }
+.tick--round { border-radius: 50%; }
+.row input:checked ~ .tick { background: var(--pumpkin); border-color: var(--pumpkin); }
+.row input:checked ~ .tick::after { content: ""; width: 8px; height: 15px; border: solid var(--ink); border-width: 0 3.5px 3.5px 0; transform: translateY(-2px) rotate(45deg); }
+
+.row--slider { cursor: default; }
+.row--slider input { flex: 1; accent-color: var(--pumpkin); height: 32px; }
+.row--slider output { min-width: 4ch; text-align: right; font-weight: 700; }
+
+.keys .row { cursor: default; justify-content: space-between; }
+.keys dt { display: flex; align-items: baseline; gap: var(--s-2); }
+.keys dd { margin: 0; text-align: right; }
+.keys__word { color: var(--moon-3); font-style: italic; }
+
+/* ---- the haul ------------------------------------------------------------------------------------------------- */
+.haul__item {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; column-gap: var(--s-3);
+  min-height: 56px; padding: var(--s-2) var(--s-4);
+  border-left: 6px solid var(--alive);
+}
+.haul__item + .haul__item { border-top: 1px solid var(--night-4); }
+.haul__item[data-verdict="ask"] { border-left-color: var(--hazard); }
+.haul__item[data-verdict="beware"] { border-left-color: var(--blood-fill); }
+.haul__name { font-weight: 700; overflow-wrap: anywhere; }
+.haul__times { color: var(--moon-2); }
+.haul__mark { display: flex; align-items: center; gap: 6px; margin-left: auto; white-space: nowrap; font-weight: 700; color: var(--alive); }
+.haul__item[data-verdict="ask"] .haul__mark { color: var(--hazard); }
+.haul__item[data-verdict="beware"] .haul__mark { color: var(--blood); }
+.haul__icon { width: 18px; height: 18px; stroke-width: 3; }
+.haul__empty { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); padding: var(--s-5) var(--s-4); text-align: center; color: var(--moon-2); }
+.haul__pail { width: 64px; height: 64px; }

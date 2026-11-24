@@ -3,7 +3,7 @@ import type { Allergen, Judgement, Reading } from "./types";
 import type { HaulItem } from "./haul";
 
 /**
- * Everything the mirror says. Rule one of product.md lives here: nothing is called safe unless the verdict is safe,
+ * Everything the castle says. Rule one of product.md lives here: nothing is called safe unless the verdict is safe,
  * and anything inferred is said as "likely" with "ask someone to check the label".
  */
 
@@ -15,7 +15,7 @@ const sentence = (s: string): string => {
 
 /** "Snickers, by Mars" or just "Snickers". The brand is dropped when the name already carries it. */
 export function title(r: Reading): string {
-  const name = r.name.trim() || "Something sweet";
+  const name = r.name.trim() || "A treat";
   const brand = r.brand.trim();
   return brand && !name.toLowerCase().includes(brand.toLowerCase()) ? `${name}, by ${brand}` : name;
 }
@@ -45,6 +45,22 @@ export function summary(r: Reading, j: Judgement, mine: Allergen[]): string {
   return parts.join(" ");
 }
 
+/**
+ * The one line printed under the verdict, so it can be read at a glance: why it is Beware, Ask or Safe.
+ * Same rules as summary(): "likely" stays "likely", and nothing reads as safe unless the verdict is safe.
+ */
+export function reason(r: Reading, j: Judgement, mine: Allergen[]): string {
+  const listed = j.matches.filter((m) => m.certainty === "listed").map((m) => allergenSpoken(m.allergen));
+  const likely = j.matches.filter((m) => m.certainty === "likely").map((m) => allergenSpoken(m.allergen));
+  if (j.verdict === "beware") {
+    const found = [listed.length ? `contains ${list(listed)}` : "", likely.length ? `${listed.length ? "likely" : "likely contains"} ${list(likely)}` : ""];
+    const wrapper = j.wrapperProblem ? (r.wrapper === "unwrapped" ? "it looks unwrapped" : `the wrapper looks ${r.wrapper}`) : "";
+    return [found.filter(Boolean).join(", "), wrapper].filter(Boolean).map(sentence).join(" ");
+  }
+  if (j.verdict === "ask") return mine.length && !r.allergenListKnown ? "No allergen label to check." : "Not certain about this one.";
+  return mine.length ? "None of your allergens are on the label." : "No warnings.";
+}
+
 /** Said on "more": ingredients, sugar, calories, the barcode, and where the facts came from. */
 export function details(r: Reading): string {
   const parts: string[] = [];
@@ -57,14 +73,14 @@ export function details(r: Reading): string {
   return parts.join(" ");
 }
 
-/** When nothing candy-like was seen. */
+/** When no treat was seen. */
 export function guidance(r: Reading): string {
-  return sentence(r.guidance || "I can't see a candy. Hold it about a hand's width from the camera, front of the wrapper facing it");
+  return sentence(r.guidance || "I can't see a treat. Hold it about a hand's width from the camera, front of the wrapper facing it");
 }
 
 /** The haul, warnings first: "You have 7 treats. 2 to check: ..." */
 export function haulSummary(items: HaulItem[]): string {
-  if (items.length === 0) return "Your haul is empty. Hold up a candy to start.";
+  if (items.length === 0) return "Your haul is empty. Hold up a treat to start.";
   const total = items.reduce((s, i) => s + i.count, 0);
   const named = (i: HaulItem) => (i.count > 1 ? `${i.count} ${i.name}` : i.name);
   const warn = items.filter((i) => i.verdict === "beware");
@@ -78,11 +94,11 @@ export function haulSummary(items: HaulItem[]): string {
 }
 
 export const GREETING =
-  "The mirror is awake. Hold a candy up to the camera, about a hand's width away, and keep it still. I'll read it when it stops moving. Press space to read now, M for more, R to repeat, B for your haul, S for settings.";
+  "The gate is open. Hold a treat up to the camera, about a hand's width away, and keep it still. I'll read it as soon as it stops moving. Or tap the window, or press space, to read now. R repeats, M tells you more, B is your haul, S is settings.";
 
 export const HELP =
-  "Keys: space to scan, R to repeat, M for more details, B for your haul, S for settings, V to change my voice, escape to hush. You can also say scan, repeat, more, haul or help.";
+  "Tap the window or press space to read. R to repeat, M for more details, B for your haul, S for settings, V to change my voice, escape to hush. Tap the bar at the top of the screen to stop me talking. You can also say scan, repeat, more, haul or help.";
 
 export const TOO_DARK = "Too dark. Turn on a light.";
 export const NO_KEY =
-  "I can't read wrappers right now, but barcodes still work. Turn the candy until its barcode faces the camera.";
+  "I can't read wrappers right now, but barcodes still work. Turn the treat until its barcode faces the camera.";

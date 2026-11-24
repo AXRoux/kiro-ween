@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { createApp } from "../server/app";
-import { parseDataUrl, toReport } from "../server/identify";
+import { parseDataUrl, SYSTEM, TOOL, toReport } from "../server/identify";
 
 const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 const post = (body: unknown) => new Request("http://x/api/identify", { method: "POST", body: JSON.stringify(body), headers: { "content-type": "application/json" } });
@@ -10,7 +10,7 @@ function fakeModel(input: unknown, status = 200) {
   const sent: any[] = [];
   const fetch = (async (_url: string, init: RequestInit) => {
     sent.push(JSON.parse(String(init.body)));
-    return new Response(JSON.stringify({ content: [{ type: "tool_use", name: "report_candy", input }] }), { status });
+    return new Response(JSON.stringify({ content: [{ type: "tool_use", name: "report_treat", input }] }), { status });
   }) as unknown as typeof globalThis.fetch;
   return { fetch, sent };
 }
@@ -40,13 +40,13 @@ describe("toReport", () => {
 });
 
 describe("/api/identify", () => {
-  it("forces the report_candy tool and returns the checked report", async () => {
+  it("forces the report_treat tool and returns the checked report", async () => {
     const model = fakeModel({ seen: true, name: "Snickers", brand: "Mars", kind: "chocolate bar", allergens: [{ name: "peanuts", certainty: "listed" }], wrapper: "sealed", confidence: 0.93 });
     const app = createApp({ apiKey: "k", fetch: model.fetch });
     const res = await app(post({ image: PNG }));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({ seen: true, name: "Snickers", wrapper: "sealed" });
-    expect(model.sent[0].tool_choice).toEqual({ type: "tool", name: "report_candy" });
+    expect(model.sent[0].tool_choice).toEqual({ type: "tool", name: "report_treat" });
     expect(model.sent[0].messages[0].content[0].source.media_type).toBe("image/png");
   });
   it("says 503 without a key, so the client falls back to barcodes", async () => {
@@ -118,19 +118,25 @@ describe("/api/speak", () => {
     }) as unknown as typeof globalThis.fetch;
     return { fetch, sent };
   }
-  it("speaks with George by default and Lily for the spirit voice, and caches", async () => {
+  it("speaks with Serena by default and Ana when asked, and caches", async () => {
     const v = fakeVoice();
     const app = createApp({ speechKey: "el", fetch: v.fetch });
     const a = await app(speakReq({ text: "Snickers. Chocolate bar." }));
     expect(a.status).toBe(200);
     expect(a.headers.get("content-type")).toBe("audio/mpeg");
-    expect(v.sent[0]!.url).toContain("/text-to-speech/JBFqnCBsd6RMkjVDRZzb");
+    expect(v.sent[0]!.url).toContain("/text-to-speech/oxbYD1TO2CqZp6MJoeD0");
     expect(v.sent[0]!.key).toBe("el");
     const again = await app(speakReq({ text: "Snickers.  Chocolate bar." }));
     expect(again.headers.get("x-cache")).toBe("hit");
     expect(v.sent.length).toBe(1);
-    await app(speakReq({ text: "Snickers. Chocolate bar.", voice: "spirit" }));
-    expect(v.sent[1]!.url).toContain("/text-to-speech/pFZP5JQG7iQjIQuC4Bku");
+    await app(speakReq({ text: "Snickers. Chocolate bar.", voice: "ana" }));
+    expect(v.sent[1]!.url).toContain("/text-to-speech/Z0QKopwR1e0SJMnL0DU0");
+  });
+  it("falls back to Serena for a voice it doesn't know (older settings said George or Lily)", async () => {
+    const v = fakeVoice();
+    const app = createApp({ speechKey: "el", fetch: v.fetch });
+    await app(speakReq({ text: "Twix.", voice: "spirit" }));
+    expect(v.sent[0]!.url).toContain("/text-to-speech/oxbYD1TO2CqZp6MJoeD0");
   });
   it("refuses empty or very long text before calling the voice service", async () => {
     const v = fakeVoice();
@@ -142,5 +148,13 @@ describe("/api/speak", () => {
   it("says 503 without a key, so the browser voice takes over", async () => {
     expect((await createApp({})(speakReq({ text: "hi" }))).status).toBe(503);
     expect(await (await createApp({ speechKey: "el" })(new Request("http://x/api/health"))).json()).toMatchObject({ speech: true });
+  });
+});
+
+describe("what counts as a treat", () => {
+  it("asks the model to accept better-for-you treats, not only candy", () => {
+    for (const t of ["fig bars", "Nature's Bakery", "granola", "fruit snacks", "pretzels", "raisins"]) expect(SYSTEM).toContain(t);
+    expect(SYSTEM).not.toMatch(/no candy or sweet/i);
+    expect(TOOL.input_schema.properties.seen.description).toMatch(/food treat/);
   });
 });

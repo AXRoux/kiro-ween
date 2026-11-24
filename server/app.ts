@@ -14,7 +14,7 @@ export interface AppOptions {
   fetch?: typeof fetch;
   /** Directory of the built client; omit in development (Vite serves it). */
   staticDir?: string;
-  /** ElevenLabs key for the spirit's voice. Without it the browser's own voice is used. */
+  /** ElevenLabs key for the castle's voice. Without it the browser's own voice is used. */
   speechKey?: string;
   /** Requests per client per minute on /api/identify. */
   perMinute?: number;
@@ -98,7 +98,7 @@ export function createApp(opts: AppOptions) {
         return json(200, report);
       } catch (e) {
         console.error("identify failed:", e instanceof Error ? e.message : e);
-        return json(502, { error: "upstream", message: "The spirits did not answer. Try again." });
+        return json(502, { error: "upstream", message: "The castle got no answer. Try again." });
       }
     }
 

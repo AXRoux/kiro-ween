@@ -1,6 +1,6 @@
 /**
  * Hands-free scanning (Requirement 2). Works on tiny luma frames (64 x 48) so it costs nothing per frame:
- * something changes in front of the mirror, then holds still for STILL_MS, and the mirror reads it once.
+ * something changes in front of the window, then holds still for STILL_MS, and the castle reads it once.
  * The same still scene is never read twice: it re-arms only when the picture differs from the last read.
  */
 export const W = 64;
@@ -76,7 +76,7 @@ export class Stillness {
       return { phase: "moving", fire: false, progress: 0 };
     }
     if (this.lastRead && difference(frame, this.lastRead) <= CHANGED) {
-      // Moved, then settled back into the scene we already read: nothing new in front of the mirror.
+      // Moved, then settled back into the scene we already read: nothing new in front of the window.
       this.armed = false;
       this.steadySince = null;
       return { phase: "idle", fire: false, progress: 0 };

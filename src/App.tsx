@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Atmosphere } from "./components/Atmosphere";
+import { Arch, type Stage } from "./components/Arch";
+import { CASE, Castle, HALO } from "./components/Castle";
+import { Dock } from "./components/Dock";
 import { Gate } from "./components/Gate";
-import { Mirror, type Stage } from "./components/Mirror";
-import { SpiritBoard } from "./components/SpiritBoard";
 import { Haul } from "./components/Haul";
 import { Settings, type Prefs } from "./components/Settings";
+import { StatusBar } from "./components/StatusBar";
+import { Verdict } from "./components/Verdict";
 import { allergenLabel } from "./lib/allergens";
 import { readBarcode } from "./lib/barcode";
 import { CameraError, captureJpeg, FrameSampler, openCamera } from "./lib/camera";
 import { addToHaul, type HaulItem } from "./lib/haul";
+import { haptics, hapticsSupported } from "./lib/haptics";
 import { identifyFrame } from "./lib/identify";
 import { listenSupported, startListening, type Command } from "./lib/listen";
 import { Stillness, toLuma } from "./lib/motion";
@@ -18,10 +21,11 @@ import { merge } from "./lib/reading";
 import { sounds } from "./lib/sounds";
 import { emptyReading, type Judgement, type Reading } from "./lib/types";
 import { judge } from "./lib/verdict";
-import { voice } from "./lib/voice";
+import { asVoiceStyle, voice } from "./lib/voice";
+import { keepAwake } from "./lib/wakelock";
 import "./styles/app.css";
 
-const DEFAULT_PREFS: Prefs = { allergens: [], output: "voice", voiceStyle: "clear", rate: 1, autoScan: true, sounds: true, listening: false };
+const DEFAULT_PREFS: Prefs = { allergens: [], output: "voice", voiceStyle: "serena", rate: 1, autoScan: true, sounds: true, haptics: true, listening: false };
 const load = <T,>(key: string, fallback: T): T => {
   try {
     const raw = localStorage.getItem(key);
@@ -31,15 +35,16 @@ const load = <T,>(key: string, fallback: T): T => {
   }
 };
 const CAMERA_PROBLEM: Record<CameraError["reason"], string> = {
-  denied: "The mirror needs your camera. Allow camera access for this page in your browser's settings, then press Enter the séance again.",
-  missing: "I can't find a camera. Plug one in, or open this page on a phone, then press Enter the séance again.",
+  denied: "I need your camera to see your treats. Allow camera access for this page in your browser's settings, then press Open the gate again.",
+  missing: "I can't find a camera. Plug one in, or open this page on a phone, then press Open the gate again.",
   unsupported: "This browser can't share a camera with web pages. Try Chrome, Edge, Safari or Firefox.",
-  failed: "The camera would not start. Close other apps that might be using it, then press Enter the séance again.",
+  failed: "The camera would not start. Close other apps that might be using it, then press Open the gate again.",
 };
+const VOICE_HELLO = { serena: "I'm Serena. Let's see what you got tonight.", ana: "I'm Ana. I'll read every treat to you, slowly and clearly." } as const;
 
 /**
- * The séance. A small state machine: watching → sensing → still → scrying → speaking → watching (plus dark).
- * Everything the screen shows is also said, either by the spirit's voice or through the live region for the user's
+ * The castle. A small state machine: watching → sensing → still → reading → speaking → watching (plus dark).
+ * Everything the screen shows is also said, either by the castle's voice or through the live region for the user's
  * own screen reader (never both, so nothing is heard twice).
  */
 export function App() {
@@ -51,8 +56,12 @@ export function App() {
   const [reading, setReading] = useState<Reading | null>(null);
   const [judgement, setJudgement] = useState<Judgement | null>(null);
   const [haul, setHaul] = useState<HaulItem[]>(() => load<{ items: HaulItem[] }>("tor.haul", { items: [] }).items);
-  const [prefs, setPrefsState] = useState<Prefs>(() => load("tor.prefs", DEFAULT_PREFS));
+  const [prefs, setPrefsState] = useState<Prefs>(() => {
+    const p = load("tor.prefs", DEFAULT_PREFS);
+    return { ...p, voiceStyle: asVoiceStyle(p.voiceStyle) };
+  });
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [haulOpen, setHaulOpen] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [polite, setPolite] = useState("");
   const [assertive, setAssertive] = useState("");
@@ -84,12 +93,14 @@ export function App() {
     voice.setStyle(p.voiceStyle);
     voice.setRate(p.rate);
     sounds.setEnabled(p.sounds);
+    haptics.setEnabled(p.haptics);
     // Speak back what changed (Requirement 6.2).
     if (p.allergens.join() !== before.allergens.join()) {
       say(p.allergens.length ? `I'll warn you about ${p.allergens.map((a) => allergenLabel(a).toLowerCase()).join(", ")}.` : "I won't warn about any allergens.");
-    } else if (p.voiceStyle !== before.voiceStyle) say(p.voiceStyle === "spirit" ? "I'm Lily. I'll be your medium tonight." : "I'm George. I'll read your treats to you.");
+    } else if (p.voiceStyle !== before.voiceStyle) say(VOICE_HELLO[p.voiceStyle]);
     else if (p.output !== before.output) say(p.output === "voice" ? "I'll speak for myself." : "Your screen reader will speak for me.");
-    else if (p.autoScan !== before.autoScan) say(p.autoScan ? "I'll read on my own when you hold a candy still." : "I'll wait for you to press space.");
+    else if (p.autoScan !== before.autoScan) say(p.autoScan ? "I'll read on my own when you hold a treat still." : "I'll wait for you to tap the window or press space.");
+    else if (p.haptics !== before.haptics) say(p.haptics ? "I'll vibrate with each answer." : "No more vibrating.");
   };
 
   useEffect(() => localStorage.setItem("tor.haul", JSON.stringify({ items: haul })), [haul]);
@@ -101,10 +112,11 @@ export function App() {
     voice.setStyle(prefs.voiceStyle);
     voice.setRate(prefs.rate);
     sounds.setEnabled(prefs.sounds);
+    haptics.setEnabled(prefs.haptics);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Says something the right way for this user: the spirit's voice, or the live region for their screen reader. */
+  /** Says something the right way for this user: the castle's voice, or the live region for their screen reader. */
   const say = useCallback((text: string, urgent = false): Promise<void> => {
     lastSaidRef.current = text;
     if (prefsRef.current.output === "screenreader" || !voice.supported()) {
@@ -117,17 +129,17 @@ export function App() {
     return voice.say(text);
   }, []);
 
-  // ---------------------------------------------------------------- reading a candy
+  // ---------------------------------------------------------------- reading a treat
   const scan = useCallback(
     async (trigger: "auto" | "manual") => {
       if (busyRef.current) return;
       const video = videoRef.current;
       if (!video || video.readyState < 2) {
-        void say("The mirror can't see yet. Give it a moment.");
+        void say("The camera can't see yet. Give it a moment.");
         return;
       }
       busyRef.current = true;
-      setStage("scrying");
+      setStage("reading");
       setReading(null);
       setJudgement(null);
       if (trigger === "manual") sounds.heartbeat();
@@ -143,7 +155,7 @@ export function App() {
           sounds.creak();
           setStage("watching");
           if (seen && !seen.ok && seen.reason === "slow-down") await say("Too many readings at once. Wait a moment, then try again.");
-          else if (seen && !seen.ok && seen.reason === "failed") await say("The spirits did not answer. Hold it still and try again.");
+          else if (seen && !seen.ok && seen.reason === "failed") await say("I got no answer. Hold it still and try again.");
           else if (visionRef.current === false) await say(code ? `I found barcode ${code.split("").join(" ")}, but no label for it. ${NO_KEY}` : NO_KEY);
           else await say(guidance(result ?? emptyReading("vision")));
           return;
@@ -154,15 +166,16 @@ export function App() {
         setReading(result);
         setJudgement(j);
         lastRef.current = { reading: result, judgement: j };
-        setHaul((h) => addToHaul(h, result.name || "Something sweet", j.verdict));
+        setHaul((h) => addToHaul(h, result.name || "A treat", j.verdict));
         if (j.verdict === "beware") sounds.toll();
         else if (j.verdict === "safe") sounds.safe();
         else sounds.chime();
+        haptics.buzz(j.verdict);
         setStage("speaking");
         await say(summary(result, j, mine), j.verdict === "beware");
       } finally {
         busyRef.current = false;
-        if (stageRef.current === "speaking" || stageRef.current === "scrying") setStage("watching");
+        if (stageRef.current === "speaking" || stageRef.current === "reading") setStage("watching");
       }
     },
     [say],
@@ -178,8 +191,10 @@ export function App() {
         case "repeat":
           return void say(last ? summary(last.reading, last.judgement, prefsRef.current.allergens) : lastSaidRef.current || "Nothing to repeat yet.");
         case "more":
-          return void say(last ? details(last.reading) : "Read a candy first, then ask for more.");
+          return void say(last ? details(last.reading) : "Read a treat first, then ask for more.");
         case "haul":
+          setSettingsOpen(false);
+          setHaulOpen(true);
           return void say(haulSummary(haulRef.current));
         case "help":
           return void say(HELP);
@@ -187,10 +202,11 @@ export function App() {
           voice.hush();
           return;
         case "settings":
+          setHaulOpen(false);
           setSettingsOpen(true);
           return;
         case "voice":
-          return setPrefs({ ...prefsRef.current, voiceStyle: prefsRef.current.voiceStyle === "clear" ? "spirit" : "clear" });
+          return setPrefs({ ...prefsRef.current, voiceStyle: prefsRef.current.voiceStyle === "serena" ? "ana" : "serena" });
         case "listen":
           if (!listenSupported()) return void say("Voice commands are not supported in this browser.");
           setPrefs({ ...prefsRef.current, listening: !prefsRef.current.listening });
@@ -203,7 +219,7 @@ export function App() {
   useEffect(() => {
     if (!entered) return;
     const onKey = (e: KeyboardEvent) => {
-      if (settingsOpen || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (settingsOpen || haulOpen || e.metaKey || e.ctrlKey || e.altKey) return;
       const t = e.target as HTMLElement;
       if (t.closest("input, textarea, select, dialog")) return;
       // Space and Enter on a focused button press that button; everywhere else Space reads.
@@ -216,7 +232,7 @@ export function App() {
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
-  }, [entered, settingsOpen, run]);
+  }, [entered, settingsOpen, haulOpen, run]);
 
   useEffect(() => {
     if (!entered || !prefs.listening) return;
@@ -252,7 +268,10 @@ export function App() {
       const next: Stage = tick.phase === "dark" ? "dark" : tick.phase === "moving" ? "sensing" : tick.phase === "steadying" ? "still" : "watching";
       if (!(stageRef.current === "speaking" && next === "watching") && next !== stageRef.current) setStage(next);
       setProgress(tick.progress);
-      if (tick.phase === "steadying" && !wasSteadying) sounds.heartbeat();
+      if (tick.phase === "steadying" && !wasSteadying) {
+        sounds.heartbeat();
+        haptics.buzz("steady");
+      }
       wasSteadying = tick.phase === "steadying";
       if (tick.phase === "dark" && now - darkSaid > 8000 && !voiceBusy()) {
         darkSaid = now;
@@ -273,14 +292,15 @@ export function App() {
     try {
       const stream = await openCamera();
       streamRef.current = stream;
-      sounds.whoosh();
+      sounds.gate();
+      haptics.buzz("open");
       setEntered(true);
       const health = (await fetch("/api/health")
         .then((r) => r.json())
         .catch(() => null)) as { vision?: boolean; speech?: boolean } | null;
       visionRef.current = health ? Boolean(health.vision) : null;
       voice.setServerVoice(Boolean(health?.speech));
-      voice.prefetch([HELP]);
+      voice.prefetch([HELP, VOICE_HELLO.serena, VOICE_HELLO.ana]);
       void say(visionRef.current === false ? `${GREETING} Wrapper reading is off on this server, so show me barcodes.` : GREETING);
     } catch (e) {
       const text = e instanceof CameraError ? CAMERA_PROBLEM[e.reason] : CAMERA_PROBLEM.failed;
@@ -291,6 +311,9 @@ export function App() {
     }
   };
 
+  // A blind user can't see the screen dim: keep it awake while the camera is on.
+  useEffect(() => (entered ? keepAwake() : undefined), [entered]);
+
   useEffect(() => {
     const v = videoRef.current;
     if (!entered || !v || !streamRef.current) return;
@@ -298,11 +321,14 @@ export function App() {
     void v.play().catch(() => undefined);
   }, [entered]);
 
-  const verdict = stage === "scrying" ? undefined : judgement?.verdict;
+  const verdict = stage === "reading" ? undefined : judgement?.verdict;
+  const layout = useLayout();
+  // the desktop app's ghosts live in another window: tell them the verdict, so they glow in its colour
+  useEffect(() => window.castle?.setVerdict(verdict ?? "none"), [verdict]);
+  const haulCount = haul.reduce((n, i) => n + i.count, 0);
 
   return (
-    <div className="app" data-verdict={verdict}>
-      <Atmosphere />
+    <main className={desktop ? "app app--desktop" : layout.bare ? "app app--bare" : "app"} data-verdict={verdict}>
       <div className="sr-only" aria-live="polite" role="status">
         {polite}
       </div>
@@ -310,67 +336,59 @@ export function App() {
         {assertive}
       </div>
 
-      {!entered ? (
-        <Gate onEnter={enter} problem={problem} busy={gateBusy} />
-      ) : (
-        <>
-          <header className="app__head">
-            <h1 className="app__title">
-              Trick <span>or</span> Read
-            </h1>
-            <p className="app__status" aria-hidden="true">
-              <span className="app__status-dot" />
-              {stageLine(stage, prefs.autoScan)}
-            </p>
-            <div className="app__tools">
-              <button type="button" className="brass" onClick={() => run("scan")}>
-                Read now <kbd>Space</kbd>
-              </button>
-              <button type="button" className="brass" onClick={() => setSettingsOpen(true)}>
-                Grimoire <kbd>S</kbd>
-              </button>
+      <div className="stage" style={layout.bare || desktop ? undefined : { width: CASE.w * layout.scale, height: CASE.h * layout.scale }}>
+        <div className="stage__inner" style={layout.bare ? undefined : { transform: `scale(${layout.scale})` }}>
+          <Castle desktop={desktop} bare={layout.bare} stage={stage} live={entered} onClose={() => window.castle?.close()} onMinimize={() => window.castle?.minimize()}>
+            <div className="screen" data-live={entered}>
+              <StatusBar live={entered} speaking={speaking} listening={entered && prefs.listening} onHush={() => run("hush")} />
+              <Arch ref={videoRef} stage={stage} progress={progress} live={entered} autoScan={prefs.autoScan} onRead={() => run("scan")} />
+              {entered ? <Verdict reading={reading} judgement={judgement} mine={prefs.allergens} busy={stage === "reading"} /> : <Gate onEnter={enter} problem={problem} busy={gateBusy} />}
+              <Dock
+                live={entered}
+                hasReading={Boolean(reading)}
+                haulCount={haulCount}
+                onRepeat={() => run("repeat")}
+                onMore={() => run("more")}
+                onHaul={() => (entered ? run("haul") : setHaulOpen(true))}
+                onSettings={() => run("settings")}
+              />
+              <span className="screen__home" aria-hidden="true" />
             </div>
-          </header>
+          </Castle>
+        </div>
+      </div>
 
-          <main className="app__main">
-            <Mirror ref={videoRef} stage={stage} progress={progress} live={entered} />
-            <div className="app__side">
-              <SpiritBoard reading={reading} judgement={judgement} mine={prefs.allergens} speaking={speaking} onMore={() => run("more")} onRepeat={() => run("repeat")} />
-              <Haul items={haul} onSpeak={() => run("haul")} onEmpty={() => (setHaul([]), void say("Your haul is empty."))} />
-            </div>
-          </main>
-
-          <footer className="app__foot">
-            <p>
-              Label data from <a href="https://world.openfoodfacts.org">Open Food Facts</a> (ODbL). Wrapper reading by a vision model: always ask someone to confirm a warning. Nothing you show the mirror is stored.
-            </p>
-            <p>
-              {prefs.allergens.length ? `Warning about: ${prefs.allergens.map(allergenLabel).join(", ")}.` : "No allergens set: press S to add yours."}
-            </p>
-          </footer>
-
-          <Settings open={settingsOpen} prefs={prefs} listenSupported={listenSupported()} onChange={setPrefs} onClose={() => setSettingsOpen(false)} />
-        </>
-      )}
-    </div>
+      <Settings open={settingsOpen} prefs={prefs} listenSupported={listenSupported()} hapticsSupported={hapticsSupported()} onChange={setPrefs} onClose={() => setSettingsOpen(false)} />
+      <Haul open={haulOpen} items={haul} onSpeak={() => void say(haulSummary(haul))} onEmpty={() => (setHaul([]), void say("Your haul is empty."))} onClose={() => setHaulOpen(false)} />
+    </main>
   );
+}
+
+const desktop = typeof window !== "undefined" && Boolean(window.castle?.desktop);
+
+/**
+ * How to lay the castle out. The desktop window is always the case's exact size (Electron's zoom resizes the window
+ * instead). In a browser the case scales down to fit, but never below 80%. On a phone (a narrow screen) the device
+ * already is the phone, so the case comes off and the screen fills the page; the same happens when a low-vision user
+ * zooms in past what fits, so text keeps the size they asked for (WCAG 1.4.10).
+ */
+function useLayout(): { bare: boolean; scale: number } {
+  const measure = () => {
+    if (desktop) return { bare: false, scale: 1 };
+    if (innerWidth < 560) return { bare: true, scale: 1 };
+    // leave the ghosts some air at the sides and above
+    const scale = Math.min(1, (innerWidth - 2 * HALO.x) / CASE.w, (innerHeight - 24 - HALO.top) / CASE.h);
+    return scale < 0.8 ? { bare: true, scale: 1 } : { bare: false, scale };
+  };
+  const [layout, setLayout] = useState(measure);
+  useEffect(() => {
+    const on = () => setLayout(measure());
+    addEventListener("resize", on);
+    return () => removeEventListener("resize", on);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return layout;
 }
 
 const voiceBusy = () => typeof speechSynthesis !== "undefined" && speechSynthesis.speaking;
 
-function stageLine(stage: Stage, auto: boolean): string {
-  switch (stage) {
-    case "watching":
-      return auto ? "Watching: hold a treat still to read it" : "Watching: press Space to read";
-    case "sensing":
-      return "Something stirs before the glass";
-    case "still":
-      return "Hold it still…";
-    case "scrying":
-      return "Scrying…";
-    case "speaking":
-      return "The spirit speaks";
-    case "dark":
-      return "Too dark: turn on a light";
-  }
-}

@@ -12,10 +12,12 @@ inclusion: always
   schema in the prompt, the JSON re-checked); with `ANTHROPIC_API_KEY`, Anthropic directly with a forced
   `report_candy` tool call. Keys live on the server; the browser never sees them.
 - **Testing in a browser:** headless Chrome with `--mute-audio` always (it still plays sound through the speakers).
-- **Voice:** ElevenLabs through `POST /api/speak` (George, a warm storyteller, by default; Lily, a velvety medium),
+- **Voice:** ElevenLabs through `POST /api/speak`: Serena by default (a young Brazilian woman speaking English, warm
+  and relaxed) or Ana (Brazilian, calm and measured), both from the shared voice library,
   cached in memory on the server and per session in the browser. Web Speech `speechSynthesis` only as the fallback.
   `SpeechRecognition` (where available) for voice commands.
   Sound cues are synthesised with Web Audio: no audio files, no licensing.
+- **Phones:** the Vibration API for verdict patterns (where it exists), the Screen Wake Lock API while the camera is on.
 - **No new runtime dependencies** without a reason written in the design doc.
 
 ## Commands

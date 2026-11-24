@@ -1,6 +1,7 @@
 /**
  * Sound cues, synthesised with Web Audio (no files, nothing to license). Each one means one thing, so a blind user
- * learns them quickly: heartbeat = something is in front of the mirror, chime = read, toll = beware, creak = nothing seen.
+ * learns them quickly: heartbeat = something is in front of the camera, chime = read, toll = beware, creak = nothing seen,
+ * gate = the portcullis is up and the castle is listening.
  */
 let ctx: AudioContext | null = null;
 let enabled = localStorage.getItem("tor.sounds") !== "off";
@@ -69,5 +70,11 @@ export const sounds = {
   safe: () => play(() => (bell(660, 0.1, 1.2), setTimeout(() => bell(990, 0.08, 1.4), 160))),
   toll: () => play(() => (bell(110, 0.32, 3.4), tone(55, 0, 2.2, { type: "triangle", gain: 0.12 }))),
   creak: () => play(() => noise(0.7, 260, 900, 0.12)),
-  whoosh: () => play(() => (noise(1.1, 180, 2200, 0.07), tone(220, 0.05, 1.2, { type: "sine", gain: 0.05, glide: -120 }))),
+  /** The portcullis winding up: a ratchet clicking on its chain, a groan of old wood, then a low thud as it locks. */
+  gate: () =>
+    play(() => {
+      for (let i = 0; i < 9; i++) setTimeout(() => noise(0.035, 1800 + i * 90, 3800, 0.1), i * 95);
+      noise(0.95, 140, 420, 0.07);
+      setTimeout(() => (tone(70, 0, 0.5, { type: "triangle", gain: 0.3, glide: -30 }), bell(220, 0.05, 1.2)), 900);
+    }),
 };

@@ -28,5 +28,5 @@ const server = Bun.serve({
 });
 
 console.log(
-  `trick-or-read api http://${server.hostname}:${server.port}  ·  wrapper reading ${apiKey ? `on (${provider}: ${model})` : `OFF (no ${provider === "fal" ? "FAL_KEY" : "ANTHROPIC_API_KEY"}): barcodes only`}  ·  voice ${process.env.ELEVENLABS_API_KEY ? "ElevenLabs (George, Lily)" : "browser speech (no ELEVENLABS_API_KEY)"}${staticDir ? "  ·  serving dist/" : ""}`,
+  `trick-or-read api http://${server.hostname}:${server.port}  ·  wrapper reading ${apiKey ? `on (${provider}: ${model})` : `OFF (no ${provider === "fal" ? "FAL_KEY" : "ANTHROPIC_API_KEY"}): barcodes only`}  ·  voice ${process.env.ELEVENLABS_API_KEY ? "ElevenLabs (Serena, Ana)" : "browser speech (no ELEVENLABS_API_KEY)"}${staticDir ? "  ·  serving dist/" : ""}`,
 );

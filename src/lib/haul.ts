@@ -7,7 +7,7 @@ export interface HaulItem {
   verdict: Verdict;
 }
 
-/** Adds a candy, counting repeats. A later, stricter verdict for the same candy wins (beware over ask over safe). */
+/** Adds a treat, counting repeats. A later, stricter verdict for the same treat wins (beware over ask over safe). */
 export function addToHaul(items: HaulItem[], name: string, verdict: Verdict): HaulItem[] {
   const key = name.trim().toLowerCase();
   const rank = { safe: 0, ask: 1, beware: 2 } as const;

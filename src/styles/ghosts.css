@@ -1,0 +1,39 @@
+/* Ghosts around the outside of the castle. Positioned in the case's pixels, so they can sit at negative offsets. */
+.ghosts { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: visible; }
+.ghosts__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+.ghost {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  animation: haunt var(--life, 5s) cubic-bezier(0.45, 0.05, 0.4, 1) forwards;
+  will-change: transform, opacity, filter;
+}
+/* condense out of mist, swoop along the wall, then thin away and stretch into nothing */
+@keyframes haunt {
+  0% { opacity: 0; transform: translate(calc(var(--dx) * -0.1), calc(var(--dy) * -0.1)) scale(0.7, 0.85); filter: blur(10px); }
+  20% { opacity: var(--alpha, 0.9); transform: translate(calc(var(--dx) * 0.15), calc(var(--dy) * 0.15)) scale(1); filter: blur(0); }
+  75% { opacity: var(--alpha, 0.9); filter: blur(0); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.06, 1.25); filter: blur(12px); }
+}
+
+.ghost__pose { transform-origin: 60% 30%; }
+/* drifting on a draught: a slow rise and fall with a gentle lean, hinged at the head */
+.ghost__float { transform-origin: 72% 12%; animation: drift 2.6s ease-in-out infinite alternate; }
+@keyframes drift {
+  from { transform: translateY(-6px) rotate(-4deg) skewX(2deg); }
+  to { transform: translateY(6px) rotate(4deg) skewX(-3deg); }
+}
+
+.ghost__body {
+  display: block; width: 100%; height: auto; overflow: visible;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.75)) drop-shadow(0 0 14px var(--verdict-glow)) drop-shadow(0 0 28px var(--verdict-glow));
+  transition: filter 0.8s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) { .ghosts { display: none; } }
+@media (forced-colors: active) { .ghosts { display: none; } }
+
+/* the desktop app's ghost window: nothing but transparent air and ghosts */
+html.ghost-window, html.ghost-window body { background: transparent; overflow: hidden; }
+.ghost-window__castle { position: absolute; pointer-events: none; }

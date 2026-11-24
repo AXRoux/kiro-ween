@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { allergenFromWord, allergensFromTags, matchAllergens } from "../src/lib/allergens";
 import { judge } from "../src/lib/verdict";
-import { details, guidance, haulSummary, summary } from "../src/lib/phrasing";
+import { details, guidance, haulSummary, reason, summary } from "../src/lib/phrasing";
 import { addToHaul } from "../src/lib/haul";
 import { emptyReading, type Reading } from "../src/lib/types";
 
@@ -94,7 +94,7 @@ describe("phrasing", () => {
   });
   it("gives guidance when nothing was seen", () => {
     expect(guidance({ ...emptyReading("vision"), guidance: "show the front of the wrapper" })).toBe("Show the front of the wrapper.");
-    expect(guidance(emptyReading("vision"))).toMatch(/^I can't see a candy/);
+    expect(guidance(emptyReading("vision"))).toMatch(/^I can't see a treat/);
   });
 });
 
@@ -119,5 +119,39 @@ describe("voice commands", () => {
     expect(commandFrom("what do I have")).toBe("haul");
     expect(commandFrom("shh")).toBe("hush");
     expect(commandFrom("banana")).toBeNull();
+  });
+});
+
+describe("reason (the line under the verdict)", () => {
+  it("says what was found, keeping likely as likely", () => {
+    const r = vision();
+    expect(reason(r, judge(r, ["peanuts", "milk"]), ["peanuts", "milk"])).toBe("Contains peanuts, likely milk.");
+    expect(reason(r, judge(r, ["milk"]), ["milk"])).toBe("Likely contains milk.");
+  });
+  it("names a wrapper problem", () => {
+    const r = label({ wrapper: "torn" });
+    expect(reason(r, judge(r, []), [])).toBe("The wrapper looks torn.");
+    const u = label({ wrapper: "unwrapped" });
+    expect(reason(u, judge(u, ["peanuts"]), ["peanuts"])).toBe("Contains peanuts. It looks unwrapped.");
+  });
+  it("never sounds safe unless the verdict is safe", () => {
+    const r = vision({ allergens: [] });
+    const j = judge(r, ["egg"]);
+    expect(j.verdict).toBe("ask");
+    expect(reason(r, j, ["egg"])).toBe("No allergen label to check.");
+    const s = label();
+    expect(reason(s, judge(s, ["coconut"]), ["coconut"])).toBe("None of your allergens are on the label.");
+  });
+});
+
+describe("haptics", () => {
+  it("gives each verdict a pattern you can tell apart by count, not just strength", async () => {
+    const { PATTERNS } = await import("../src/lib/haptics");
+    const buzzes = (p: number[]) => Math.ceil(p.length / 2);
+    expect(buzzes(PATTERNS.safe)).toBe(1);
+    expect(buzzes(PATTERNS.ask)).toBe(2);
+    expect(buzzes(PATTERNS.beware)).toBe(3);
+    // beware is also the longest: it should be impossible to miss
+    expect(Math.min(...PATTERNS.beware.filter((_, i) => i % 2 === 0))).toBeGreaterThan(Math.max(...PATTERNS.ask));
   });
 });

@@ -1,0 +1,82 @@
+/*
+ * The castle case. Canvas 460 x 880; coordinates match Castle.tsx.
+ *
+ *   turrets: x 2–62 and 398–458 · wall: x 16–444, y 40–872 · gatehouse: x 172–288, y 10–52
+ *   screen: x 34–426, y 62–814 (392 x 752, radius 42) · nameplate: x 140–320, y 828–862 · window studs: x 66–130
+ */
+.castle {
+  position: relative;
+  -webkit-app-region: drag; /* the stone is the handle the window is dragged by */
+  user-select: none;
+  animation: rise 0.9s var(--ease) both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
+.castle__case { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+.castle__screen {
+  position: absolute; left: 34px; top: 62px; width: 392px; height: 752px;
+  border-radius: 42px;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-app-region: no-drag;
+  user-select: text;
+}
+
+/* on a phone, or with no room: the screen is the page */
+.castle--bare {
+  width: min(100%, 560px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  animation: none;
+  -webkit-app-region: no-drag;
+}
+
+/* ---- the lights: the gatehouse window and the arrow slits burn in the verdict colour -------------------- */
+.castle__lit { fill: var(--verdict); transition: fill 0.8s var(--ease); }
+.castle__halo { fill: var(--verdict-glow); transition: fill 0.8s var(--ease); }
+.castle[data-stage="off"] .castle__lit { fill: #ffa54d; animation: candle 3s ease-in-out infinite; }
+.castle[data-stage="off"] .castle__halo { fill: rgba(255, 165, 77, 0.28); }
+.castle[data-stage="reading"] .castle__lit { animation: flicker 0.5s steps(2, jump-none) infinite; }
+@keyframes candle { 0%, 100% { opacity: 1; } 40% { opacity: 0.82; } 60% { opacity: 0.95; } 75% { opacity: 0.78; } }
+@keyframes flicker { from { opacity: 1; } to { opacity: 0.45; } }
+
+/* bats bob on the night air */
+.castle__bat { animation: flap 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.castle__bats g:nth-child(2) .castle__bat { animation-delay: -0.5s; animation-duration: 1.3s; }
+.castle__bats g:nth-child(3) .castle__bat { animation-delay: -1.1s; animation-duration: 1.9s; }
+@keyframes flap { 0%, 100% { transform: translateY(0) scaleY(1); } 50% { transform: translateY(-3px) scaleY(0.55); } }
+
+/* ---- the nameplate: gold leaf in a carved panel -------------------------------------------------------- */
+.castle__nameplate {
+  position: absolute; left: 140px; top: 828px; width: 180px; height: 34px;
+  display: grid; place-items: center;
+  font: 700 18px/1 var(--carved); letter-spacing: 0.04em;
+  background: linear-gradient(180deg, #ffe7ad, #e0ae55 45%, #9c6b22);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.9));
+  pointer-events: none;
+}
+
+/* ---- window controls (desktop app): two iron studs set into the foundation ------------------------------- */
+.castle__controls { position: absolute; left: 66px; top: 831px; display: flex; gap: 8px; -webkit-app-region: no-drag; }
+.stud {
+  width: 28px; height: 28px; padding: 0; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center;
+  border: 2px solid #0a080e;
+  background: radial-gradient(circle at 38% 30%, #8a8299, #4a4458 55%, #1d1a24);
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.35), 0 2px 4px rgba(0, 0, 0, 0.7);
+  transition: transform 0.12s var(--ease), filter 0.15s;
+}
+.stud svg { width: 16px; height: 16px; fill: none; stroke: #f3efff; stroke-width: 2.6; stroke-linecap: round; }
+.stud--close { background: radial-gradient(circle at 38% 30%, #ff9a7a, #c2361f 55%, #5a0f06); }
+.stud:hover { filter: brightness(1.2); }
+.stud:active { transform: scale(0.9); }
+
+@media (prefers-reduced-motion: reduce) {
+  .castle { animation: none; }
+}
+@media (forced-colors: active) {
+  .castle__case { display: none; }
+  .castle__screen { border: 2px solid CanvasText; }
+}

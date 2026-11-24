@@ -1,75 +1,99 @@
+import { useEffect, useRef } from "react";
 import type { HaulItem } from "../lib/haul";
-import "../styles/haul.css";
+import type { Verdict } from "../lib/types";
+import "../styles/sheet.css";
 
-const MARK = { safe: "No warnings", ask: "Ask someone", beware: "Beware" } as const;
+const MARK: Record<Verdict, string> = { safe: "No warnings", ask: "Ask someone", beware: "Beware" };
+const ORDER = { beware: 0, ask: 1, safe: 2 } as const;
 
-/** The haul: every candy read this session in a bubbling cauldron, warnings first, with counts. */
-export function Haul({ items, onSpeak, onEmpty }: { items: HaulItem[]; onSpeak: () => void; onEmpty: () => void }) {
+interface Props {
+  open: boolean;
+  items: HaulItem[];
+  onSpeak: () => void;
+  onEmpty: () => void;
+  onClose: () => void;
+}
+
+/**
+ * The haul, as a sheet that slides up over the screen: every treat read this session, warnings first, with counts.
+ * A native dialog, so focus moves into it, stays there, and Esc closes it. It is also spoken when it opens.
+ */
+export function Haul({ open, items, onSpeak, onEmpty, onClose }: Props) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const d = ref.current;
+    if (!d) return;
+    if (open && !d.open) d.showModal();
+    if (!open && d.open) d.close();
+  }, [open]);
   const total = items.reduce((s, i) => s + i.count, 0);
-  const order = { beware: 0, ask: 1, safe: 2 } as const;
-  const sorted = [...items].sort((a, b) => order[a.verdict] - order[b.verdict]);
+  const sorted = [...items].sort((a, b) => ORDER[a.verdict] - ORDER[b.verdict]);
+
   return (
-    <section className="haul" aria-labelledby="haul-title">
-      <div className="haul__head">
-        <Cauldron count={total} />
-        <div>
-          <h2 id="haul-title" className="haul__title">
-            The haul
+    <dialog ref={ref} className="sheet" aria-labelledby="haul-title" onClose={onClose} onCancel={onClose}>
+      <form method="dialog" className="sheet__page">
+        <span className="sheet__grabber" aria-hidden="true" />
+        <header className="sheet__head">
+          <h2 id="haul-title">
+            Your haul
+            {total ? <span className="sheet__count">{`${total} ${total === 1 ? "treat" : "treats"}`}</span> : null}
           </h2>
-          <p className="haul__count">{total === 0 ? "Empty so far" : `${total} ${total === 1 ? "treat" : "treats"} read`}</p>
-        </div>
-      </div>
-      {sorted.length ? (
-        <ul className="haul__list">
-          {sorted.map((i) => (
-            <li key={i.key} className="haul__item" data-verdict={i.verdict}>
-              <span className="haul__dot" aria-hidden="true" />
-              <span className="haul__name">{i.name}</span>
-              {i.count > 1 ? <span className="haul__times">×{i.count}</span> : null}
-              <span className="haul__mark">{MARK[i.verdict]}</span>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <div className="haul__actions">
-        <button type="button" className="brass" onClick={onSpeak}>
-          Speak the haul <kbd>B</kbd>
-        </button>
-        {items.length ? (
-          <button type="button" className="brass brass--quiet" onClick={onEmpty}>
-            Empty
+          <button type="submit" className="btn">
+            Done <kbd aria-hidden="true">Esc</kbd>
           </button>
-        ) : null}
-      </div>
-    </section>
+        </header>
+
+        {sorted.length ? (
+          <ul className="sheet__group haul" aria-label="Treats read, warnings first">
+            {sorted.map((i) => (
+              <li key={i.key} className="haul__item" data-verdict={i.verdict}>
+                <span className="haul__name">
+                  {i.name}
+                  {i.count > 1 ? <span className="haul__times"> ×{i.count}</span> : null}
+                </span>
+                <span className="haul__mark">
+                  <Mark verdict={i.verdict} />
+                  {MARK[i.verdict]}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="sheet__group haul__empty">
+            <Pail />
+            <p>Your pail is empty. Every treat you read is added here, warnings first.</p>
+          </div>
+        )}
+
+        <div className="sheet__actions">
+          <button type="button" className="btn btn--primary" onClick={onSpeak} disabled={!items.length}>
+            Say my haul
+          </button>
+          <button type="button" className="btn btn--danger" onClick={onEmpty} disabled={!items.length}>
+            Empty it
+          </button>
+        </div>
+      </form>
+    </dialog>
   );
 }
 
-function Cauldron({ count }: { count: number }) {
+function Mark({ verdict }: { verdict: Verdict }) {
   return (
-    <svg className="cauldron" viewBox="0 0 96 80" aria-hidden="true">
-      <defs>
-        <radialGradient id="brew" cx="0.5" cy="0.4" r="0.6">
-          <stop offset="0" stopColor="#d2ffe2" />
-          <stop offset="1" stopColor="#3fd17c" />
-        </radialGradient>
-        <linearGradient id="pot" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#3b3346" />
-          <stop offset="1" stopColor="#0d0a12" />
-        </linearGradient>
-      </defs>
-      <g className="cauldron__bubbles">
-        <circle cx="38" cy="18" r="4" />
-        <circle cx="56" cy="12" r="3" />
-        <circle cx="48" cy="6" r="2.2" />
-      </g>
-      <ellipse cx="48" cy="28" rx="38" ry="8" fill="url(#brew)" />
-      <path d="M10 28c0 26 16 40 38 40s38-14 38-40c-6 6-20 9-38 9S16 34 10 28z" fill="url(#pot)" stroke="#000" strokeWidth="1.5" />
-      <path d="M8 28c0-3 18-8 40-8s40 5 40 8" fill="none" stroke="#5a5266" strokeWidth="5" strokeLinecap="round" />
-      <path d="M24 66l-6 10M72 66l6 10" stroke="#0d0a12" strokeWidth="6" strokeLinecap="round" />
-      <text x="48" y="56" textAnchor="middle" className="cauldron__num">
-        {count}
-      </text>
+    <svg className="glyph haul__icon" viewBox="0 0 32 32" aria-hidden="true">
+      {verdict === "safe" ? <path d="M6 17l7 7L26 8" /> : verdict === "ask" ? <path d="M11 11a5 5 0 1 1 7 4.6c-1.4.7-2 1.6-2 3V20M16 25.5v.5" /> : <path d="M16 4L2 28h28zM16 13v7M16 24v.5" />}
+    </svg>
+  );
+}
+
+/** An empty jack-o'-lantern pail. */
+function Pail() {
+  return (
+    <svg className="haul__pail" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M14 22c0-12 36-12 36 0" fill="none" stroke="#8a8199" strokeWidth="3" strokeLinecap="round" />
+      <path d="M8 30c0-8 10-12 24-12s24 4 24 12-4 26-24 26S8 38 8 30z" fill="#ffa54d" />
+      <path d="M20 22c-4 6-4 26 2 32M44 22c4 6 4 26-2 32M32 18v38" stroke="#d9762a" strokeWidth="2" fill="none" />
+      <path d="M18 32l6-5 4 6zM46 32l-6-5-4 6zM20 42c6 4 18 4 24 0l-3 5-3-3-3 4-3-4-3 4-3-4-3 3z" fill="#0a0710" />
     </svg>
   );
 }

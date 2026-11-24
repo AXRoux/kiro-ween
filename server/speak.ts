@@ -1,11 +1,14 @@
 /**
- * The spirit's voice: ElevenLabs text to speech, on the server so the key never reaches a browser.
- * Two voices: George (a warm storyteller, the clearest, the default) and Lily (a velvety medium).
+ * The castle's voice: ElevenLabs text to speech, on the server so the key never reaches a browser.
+ * Two young Brazilian women from the ElevenLabs voice library, both speaking English:
+ * - Serena (the default): warm, relaxed and a little playful, with a Brazilian accent.
+ * - Ana: calm, even and very clear, for anyone who wants every word measured out.
+ * Stability is kept high enough that allergen names never get swallowed by expressiveness.
  * Answers are cached in memory, so the greeting, help and repeated candies play instantly.
  */
 export const VOICES = {
-  clear: { id: "JBFqnCBsd6RMkjVDRZzb", name: "George", stability: 0.55, style: 0.25 },
-  spirit: { id: "pFZP5JQG7iQjIQuC4Bku", name: "Lily", stability: 0.38, style: 0.55 },
+  serena: { id: "oxbYD1TO2CqZp6MJoeD0", name: "Serena", stability: 0.5, style: 0.3 },
+  ana: { id: "Z0QKopwR1e0SJMnL0DU0", name: "Ana", stability: 0.6, style: 0.15 },
 } as const;
 export type VoiceKey = keyof typeof VOICES;
 export const SPEECH_MODEL = "eleven_flash_v2_5";
@@ -22,7 +25,7 @@ export function checkSpeech(body: unknown): { text: string; voice: VoiceKey } | 
   const text = typeof o.text === "string" ? o.text.replace(/\s+/g, " ").trim() : "";
   if (!text) return "text is required";
   if (text.length > MAX_TEXT) return `text is longer than ${MAX_TEXT} characters`;
-  const voice = o.voice === "spirit" ? "spirit" : "clear";
+  const voice = o.voice === "ana" ? "ana" : "serena";
   return { text, voice };
 }
 

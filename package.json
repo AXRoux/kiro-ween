@@ -3,17 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A talking scrying mirror that names your Halloween candy out loud, built for blind and low-vision trick-or-treaters.",
+  "description": "A talking castle that names your Halloween candy out loud, built for blind and low-vision trick-or-treaters.",
   "scripts": {
     "dev": "bun run scripts/dev.ts",
     "build": "vite build",
     "start": "bun run server/index.ts",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:desktop": "vite build && bun build electron/main.ts --target=node --format=cjs --outfile=dist-electron/main.cjs --external electron && bun build electron/preload.ts --target=node --format=cjs --outfile=dist-electron/preload.cjs --external electron",
+    "app": "bun run build:desktop && electron ."
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible": "^5.3.0",
-    "@fontsource/cinzel": "^5.3.0",
     "@fontsource/cinzel-decorative": "^5.3.0",
     "barcode-detector": "^3.2.4",
     "react": "^19.3.1",
@@ -25,7 +26,12 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "axe-core": "^4.14.1",
+    "electron": "^45.4.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.8"
-  }
+  },
+  "trustedDependencies": [
+    "electron"
+  ],
+  "main": "dist-electron/main.cjs"
 }

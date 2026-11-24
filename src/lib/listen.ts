@@ -1,6 +1,6 @@
 /**
  * Voice commands (Requirement 2.2, 4.4, 4.5, 7.2) where the browser supports speech recognition (Chrome, Edge, Safari).
- * Pauses while the mirror is speaking so it never hears itself.
+ * Pauses while the castle is speaking so it never hears itself.
  */
 export type Command = "scan" | "repeat" | "more" | "haul" | "help" | "hush" | "settings";
 
@@ -8,7 +8,7 @@ const WORDS: [RegExp, Command][] = [
   [/\b(scan|read( it| this)?|what is (it|this)|check)\b/, "scan"],
   [/\b(repeat|again|say that again|pardon)\b/, "repeat"],
   [/\b(more|details|ingredients|tell me more)\b/, "more"],
-  [/\b(haul|bag|my candy|what do i have)\b/, "haul"],
+  [/\b(haul|bag|my candy|my treats|what do i have)\b/, "haul"],
   [/\b(help|commands)\b/, "help"],
   [/\b(stop|quiet|hush|shh)\b/, "hush"],
   [/\b(settings|allergies|allergens)\b/, "settings"],
