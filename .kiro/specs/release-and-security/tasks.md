@@ -121,12 +121,12 @@
 
 ## Group 4 — Repository security settings
 
-- [ ] 4.1 Enable GitHub secret scanning with push protection on the `AXRoux/kiro-ween` repository (Settings →
+- [x] 4.1 Enable GitHub secret scanning with push protection on the `AXRoux/kiro-ween` repository (Settings →
       Code security → Secret scanning; tick "Push protection"). Verify by checking the Security tab shows "Secret
       scanning" as active.
 
-- [ ] 4.2 Enable Dependabot vulnerability alerts (Settings → Code security → Dependabot alerts). No auto-merge;
+- [x] 4.2 Enable Dependabot vulnerability alerts (Settings → Code security → Dependabot alerts). No auto-merge;
       alerts are reviewed manually.
 
-- [ ] 4.3 Confirm that the `SECURITY.md` created in task 3.3 is visible in the repository's Security tab as the
+- [x] 4.3 Confirm that the `SECURITY.md` created in task 3.3 is visible in the repository's Security tab as the
       security policy (GitHub detects it automatically).
