@@ -93,10 +93,20 @@ bun run typecheck
 ```
 
 ## Built with Kiro
-- **Spec:** [`.kiro/specs/candy-scanner`](.kiro/specs/candy-scanner): requirements in EARS form, design, tasks.
-- **Steering:** product rules (never say safe without knowing), tech, structure, accessibility.
-- **Hooks:** an accessibility review on every UI save, unit tests whenever the verdict or wording logic changes, a guard
-  on the safety wording, a typecheck when the agent stops.
+
+The original [candy-scanner spec](.kiro/specs/candy-scanner), the steering files, the first four hooks and the castle
+redesign were written outside Kiro.
+
+Kiro CLI did the following work in this repo:
+
+- Wrote [`.kiro/specs/castle-desktop`](.kiro/specs/castle-desktop) from the already-implemented Electron code.
+- Wrote the pure `haunt()` module and its tests, including a fix for the largest ghosts covering the edge of the screen by 8 px.
+- Fixed sky ghosts clipping outside the transparent ghost window during the full animation (drift, bob and vanish).
+- Added the `desktop-click-guard` agent hook, which guards the two-window Electron setup so the ghost window never takes mouse events.
+- Updated the steering files to reflect the two-window desktop architecture, the haunt module, and the ghost SVG provenance.
+- Reviewed accessibility on Dock, StatusBar and Arch; bumped the status-bar heading to 18 px and hid the idle island in the phone layout.
+
+The five hooks in `.kiro/hooks/` run in the Kiro IDE: `a11y-review` (accessibility check on every UI file save), `test-pure-logic` (runs unit tests when verdict or wording logic changes), `never-say-safe` (guards safety wording), `typecheck-on-stop` (typechecks when the agent stops), and `desktop-click-guard` (guards the Electron click-through fix).
 
 ## Data and privacy
 Frames are downscaled to 768 px, sent once per read, and never stored. Label data © Open Food Facts contributors, ODbL.
