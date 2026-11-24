@@ -230,3 +230,31 @@ mkdirSync("docs", { recursive: true });
 writeFileSync("docs/banner.svg", banner());
 writeFileSync("docs/divider.svg", divider());
 console.log("wrote docs/banner.svg and docs/divider.svg");
+
+/** The app icon (build/icon.svg, rendered to build/icon.png at 1024 px for electron-builder). */
+function icon(): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b0816"/><stop offset="1" stop-color="#2a1b42"/></linearGradient>
+    <radialGradient id="moonGlow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#efe8ff" stop-opacity="0.5"/><stop offset="1" stop-color="#efe8ff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="moonFace" cx="0.4" cy="0.38" r="0.75"><stop offset="0" stop-color="#fffdf3"/><stop offset="1" stop-color="#cfc8b0"/></radialGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d3552"/><stop offset="1" stop-color="#16121f"/></linearGradient>
+    <filter id="warm" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="10" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    ${ghostSymbol}
+    <clipPath id="tile"><rect x="64" y="64" width="896" height="896" rx="200"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect x="64" y="64" width="896" height="896" fill="url(#sky)"/>
+    <circle cx="740" cy="270" r="230" fill="url(#moonGlow)"/>
+    <circle cx="740" cy="270" r="110" fill="url(#moonFace)"/>
+    <path d="M64 960V760h120v-60h40v-40h40v40h40v60h80V560h-30l80-130 80 130h-30v200h80v-60h40v-40h40v40h40v60h120V960z" fill="url(#stone)"/>
+    <path d="M482 960V860a30 30 0 0 1 60 0v100z" fill="#120c08"/>
+    <path d="M498 640v-46a14 14 0 0 1 28 0v46z" fill="#ffa54d" filter="url(#warm)"/>
+    <path d="M150 840v-36a12 12 0 0 1 24 0v36zM850 840v-36a12 12 0 0 1 24 0v36z" fill="#ffa54d" filter="url(#warm)"/>
+    <use href="#ghost" x="150" y="170" width="430" height="477" filter="url(#ghostGlow)" transform="rotate(-8 365 408)"/>
+  </g>
+</svg>
+`;
+}
+writeFileSync("build/icon.svg", icon());
+console.log("wrote build/icon.svg");
