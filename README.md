@@ -56,16 +56,16 @@ Grab the latest build from the [releases page](https://github.com/AXRoux/kiro-we
 
 | Platform | File |
 |---|---|
-| macOS (Apple silicon) | `Trick or Read-<version>-arm64.dmg` |
-| macOS (Intel) | `Trick or Read-<version>.dmg` |
-| Windows | `Trick or Read Setup <version>.exe` |
-| Linux | `Trick or Read-<version>.AppImage` (run `chmod +x` first) |
+| macOS (Apple silicon) | `Trick.or.Read-<version>-arm64.dmg` |
+| macOS (Intel) | `Trick.or.Read-<version>.dmg` |
+| Windows | `Trick.or.Read.Setup.<version>.exe` |
+| Linux | `Trick.or.Read-<version>.AppImage` (run `chmod +x` first) |
 
 **First open on an unsigned build**
 
-- **macOS:** right-click the app, choose Open, then click Open in the dialog. Or go to System Settings, Privacy and Security, scroll to the blocked app and click Open Anyway.
+- **macOS:** right-click the app, choose Open, then click Open in the dialog. Or go to System Settings, Privacy and Security, scroll to the blocked app and click Open Anyway. On macOS 15 and later, right-click Open is no longer offered for unsigned apps, so use System Settings, Privacy and Security, Open Anyway.
 - **Windows:** when SmartScreen appears, click More info, then Run anyway.
-- **Linux:** `chmod +x "Trick or Read-<version>.AppImage"`, then run it.
+- **Linux:** `chmod +x "Trick.or.Read-<version>.AppImage"`, then run it.
 
 **It works with no keys at all.** Barcodes are looked up in Open Food Facts and your computer's own voice is used. To add wrapper reading and the ElevenLabs voices, create a `.env` file in the app's settings folder with the same keys as `.env.example`, then restart the app.
 
