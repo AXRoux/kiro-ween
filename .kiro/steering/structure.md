@@ -7,13 +7,16 @@ inclusion: always
 src/
   main.tsx, App.tsx        entry, the scan state machine
   components/              Castle (the case and the screen slot), StatusBar (island), Arch (camera window, Read button),
-                           Gate, Verdict (card), Dock (four tiles), Haul and Settings (sheets), Ghosts (outside the walls)
-  lib/                     pure logic first (phrasing, verdict, allergens, motion), then browser adapters
+                           Gate, Verdict (card), Dock (four tiles), Haul and Settings (sheets), Ghosts (outside the walls),
+                           ghostShape.ts (the ghost SVG path, traced from the Ghost Army insignia)
+  lib/                     pure logic first (phrasing, verdict, allergens, motion, haunt), then browser adapters
                            (camera, barcode, openfoodfacts, identify, voice, listen, sounds, haptics, wakelock)
   styles/                  global.css (tokens), one CSS module per component
+electron/                  desktop app: main.ts (the castle window plus the attached ghost window that never takes the
+                           mouse), preload.ts (the bridge: window controls and verdict forwarding)
 server/index.ts            Bun.serve: /api/identify, /api/health, static dist/
 scripts/dev.ts             runs the API and Vite together
-tests/                     bun test, for everything in src/lib that has no DOM
+tests/                     bun test, for everything in src/lib that has no DOM, including haunt
 ```
 
 - Pure logic (what to say, which verdict, which allergens match) lives in `src/lib` with no DOM access and is unit

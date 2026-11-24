@@ -18,6 +18,11 @@ inclusion: always
   `SpeechRecognition` (where available) for voice commands.
   Sound cues are synthesised with Web Audio: no audio files, no licensing.
 - **Phones:** the Vibration API for verdict patterns (where it exists), the Screen Wake Lock API while the camera is on.
+- **Desktop:** Electron. The `app://` scheme serves the page and the API in-process (no local port). The castle window
+  is the case's exact size and always takes clicks. Ghosts fly in a transparent child window that permanently ignores
+  the mouse (toggling click-through on macOS got stuck, so it is set once at creation and never changed).
+  The ghost silhouette is traced with potrace from the WWII Ghost Army insignia, a US government work in the public
+  domain, without its lightning bolts.
 - **No new runtime dependencies** without a reason written in the design doc.
 
 ## Commands
