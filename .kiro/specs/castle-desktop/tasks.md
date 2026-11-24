@@ -72,9 +72,14 @@
   - [x] 10.6 `GhostsWindow` exported from `Ghosts.tsx`; loaded from `app://trick-or-read/?ghosts`
 
 - [ ] 11. Tests and checks
-  - [ ] 11.1 Unit test for `haunt()`: assert that for a large sample of calls, every returned ghost's bounding box
-        (`x` to `x + size`, `y` to `y + size * ASPECT`) does not overlap the castle rectangle
-        (`[0, CASE.w] × [0, CASE.h]`). Currently no test covers this.
+  - [x] 11.1 `src/lib/haunt.ts`: pure `haunt(n, rng?)` generator extracted from `Ghosts.tsx`; geometry constants
+        `CASE`, `SCREEN`, `HALO`, `ASPECT` defined here (no CSS imports). Position rule: a ghost may overlap the
+        stone of the case (turrets) but must never cover the `SCREEN` rectangle, checked at both the start position
+        and the end position (start + dx, start + dy). Side ghost x is clamped after computing dx so the drift
+        cannot cause a late overlap: left ghost `x ≤ SCREEN.x − dx − size`; right ghost `x ≥ SCREEN.x + SCREEN.w − dx`.
+        `Ghosts.tsx` imports from the new module and behaves identically. `tests/haunt.test.ts` generates 2 000
+        haunts with a seeded PRNG and asserts the screen-clear rule at start and end, side ghosts face the castle,
+        and sky ghosts are smaller than side ghosts. `bun test` and `bun run typecheck` pass.
   - [ ] 11.2 End-to-end check of the desktop click path: open the app in Electron, move the mouse over the ghost-
         window area beside the castle, click, and assert that the click is received by whatever is under the ghost
         window (not consumed by the app). Currently not tested.

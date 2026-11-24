@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { CASE, HALO } from "./Castle";
+import { CASE, HALO, haunt, type Haunt } from "../lib/haunt";
 import { GHOST_BODY, GHOST_EYES, GHOST_VIEWBOX } from "./ghostShape";
 import "../styles/ghosts.css";
 
@@ -14,52 +14,8 @@ import "../styles/ghosts.css";
  * relative to its top-left corner, so negative x is the air to the left of the castle.
  */
 const COUNT = 4;
-/** Height over width of the silhouette. */
-const ASPECT = 223.6 / 201.7;
-
-interface Haunt {
-  /** Changes every appearance, so the animation restarts. */
-  n: number;
-  x: number;
-  y: number;
-  /** How far it travels while visible. */
-  dx: number;
-  dy: number;
-  /** Width in pixels. */
-  size: number;
-  /** Seconds from appearing to vanishing. */
-  life: number;
-  /** Mirrored, so it faces (and reaches) left. */
-  faceLeft: boolean;
-  /** Degrees: negative leans into a climb, positive into a dive. */
-  tilt: number;
-  alpha: number;
-}
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
-const sign = () => (Math.random() < 0.5 ? -1 : 1);
-
-/** A random appearance outside the walls: four times in five at a side, once in five in the sky. */
-function haunt(n: number): Haunt {
-  const where = Math.random();
-  const life = rand(4, 7);
-  const alpha = rand(0.78, 0.95);
-  if (where < 0.8) {
-    const left = where < 0.4;
-    const size = rand(62, 100);
-    const h = size * ASPECT;
-    // in the side air, its reaching hand over the turrets
-    const x = left ? rand(-HALO.x + 2, -size * 0.58) : rand(CASE.w - size * 0.42, CASE.w + HALO.x - size - 2);
-    const dy = sign() * rand(50, 120);
-    const y = dy < 0 ? rand(140, CASE.h - h - 10) : rand(10, CASE.h - h - 140);
-    return { n, x, y, dx: (left ? 1 : -1) * rand(0, 16), dy, size, life, faceLeft: !left, tilt: dy < 0 ? rand(-22, -8) : rand(10, 26), alpha };
-  }
-  // the sky over the wall: smaller, swooping sideways past the gatehouse
-  const size = rand(40, 54);
-  const dx = sign() * rand(50, 110);
-  const x = dx > 0 ? rand(40, CASE.w / 2) : rand(CASE.w / 2, CASE.w - 40 - size);
-  return { n, x, y: rand(-HALO.top - 6, -4), dx, dy: rand(-8, 8), size, life, faceLeft: dx < 0, tilt: rand(4, 14), alpha };
-}
 
 export function Ghosts() {
   const [reduced, setReduced] = useState(() => matchMedia("(prefers-reduced-motion: reduce)").matches);

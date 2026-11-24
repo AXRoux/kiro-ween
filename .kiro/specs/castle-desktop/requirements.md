@@ -34,7 +34,7 @@ I can confirm a result at a glance without reading the screen.
 7. WHEN the verdict is Beware THE SYSTEM SHALL colour them red.
 8. WHEN no verdict is set THE SYSTEM SHALL colour them in the moonlight idle colour.
 9. THE SYSTEM SHALL make all case elements `aria-hidden`; the screen inside the case carries all accessible information.
-10. WHILE `prefers-reduced-motion` is set THE SYSTEM SHALL stop the bat animation; the portcullis and candlelight are still permitted because they carry state.
+10. WHILE `prefers-reduced-motion` is set THE SYSTEM SHALL render no ghosts at all; the global rule in `src/styles/global.css` (`* { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important }`) makes every remaining animation and transition finish instantly, the portcullis and candlelight included.
 
 ---
 
