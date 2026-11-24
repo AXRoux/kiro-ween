@@ -98,5 +98,22 @@
         window area beside the castle, click, and assert that the click is received by whatever is under the ghost
         window (not consumed by the app). Currently not tested.
 
+- [x] 11.3 Accessibility fixes — status bar heading and island label (accessibility review follow-up)
+  - [x] 11.3a `aria-label` on the island button restored to "Stop talking" (WCAG 2.5.3: visible "Stop" is contained
+        within the accessible name; "Stop talking" gives screen-reader users more context than "Stop" alone)
+  - [x] 11.3b `.statusbar__name` font size changed from `var(--t-sm)` (16px) to `var(--t-md)` (18px) to meet the
+        "every word a person reads is 18px or larger" rule in accessibility.md
+  - [x] 11.3c Layout adjusted to fit 18px heading: horizontal padding reduced from `var(--s-5)` (24px) to
+        `var(--s-4)` (16px); idle island width reduced from 112px to 96px. Result: 392px bar − 32px padding =
+        360px content; 1fr column = (360 − 96) / 2 = 132px; "Trick or Read" at 18px bold ≈ 125px, fits with 7px
+        to spare. Speaking island still expands to 148px; heading fades at that point (existing behaviour).
+  - [x] 11.3d Phone layout collision fix (`.castle--bare`): idle island hidden with `opacity: 0; pointer-events: none`
+        so it holds its grid column but takes no visual space. Measured: "Trick or Read" at 18px bold = 116px;
+        392px case bar − 32px padding = 360px content, 1fr = 132px, clears by 16px. At 360px bare screen:
+        360px − 32px = 328px, 1fr = (328 − 96) / 2 = 116px, exactly fits. At 320px bare screen:
+        320px − 32px = 288px, 1fr = 96px, 20px short with island visible — collision removed by hiding it.
+        Island reappears (`opacity: 1`) when `data-speaking="true"`; accessibility tree behaviour unchanged
+        (`tabIndex -1`, `aria-disabled` while quiet).
+
 - [ ] 12. Ship
   - [ ] 12.1 Deploy the web build and put the URL in the README
