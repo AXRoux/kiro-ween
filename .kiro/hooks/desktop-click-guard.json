@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Guard the desktop click-through fix",
+      "trigger": "PostFileSave",
+      "description": "Prevents regressions to the two-window architecture that fixed mouse-event delivery on macOS.",
+      "matcher": "electron/(main|preload)\\.ts$|src/components/Ghosts\\.tsx$",
+      "action": {
+        "type": "agent",
+        "prompt": "A file that is part of the desktop click-through fix was just saved. Check all four of these rules and fix any that fail before continuing. After each fix, explain the reason: macOS stops delivering mousemove events to a window the moment setIgnoreMouseEvents(true) is called, so toggling click-through cannot track the cursor reliably and clicks that were meant for the castle fall through to the desktop instead.\n\n1. Castle window never calls setIgnoreMouseEvents. Search electron/main.ts for any call to setIgnoreMouseEvents on the castle window (the one created with CASE dimensions). There must be none.\n\n2. Ghost window is created correctly. In electron/main.ts, find createGhosts(). The BrowserWindow it creates must set focusable: false, its parent option must reference the castle window (win), and setIgnoreMouseEvents(true) must be called exactly once immediately after creation. There must be no subsequent call that toggles or clears that flag.\n\n3. placeGhosts centres the ghost window on the castle using HALO. In electron/main.ts, placeGhosts() must compute the ghost window position as castleX - HALO.x and castleY - HALO.top (where HALO = { x: 110, top: 32, bottom: 8 }), and must set the ghost window's content size to Math.round(GHOST_W * zoom) × Math.round(GHOST_H * zoom) where zoom is the current zoom factor. GHOST_W is CASE.w + 2 * HALO.x and GHOST_H is CASE.h + HALO.top + HALO.bottom.\n\n4. GhostsWindow renders nothing interactive. In src/components/Ghosts.tsx, the GhostsWindow component must render only the ghost positioning div and Ghost instances — no buttons, inputs, links, or any element that could receive pointer or keyboard focus. The ghost CSS must have pointer-events: none so clicks pass through the ghost window's content to the desktop."
+      }
+    }
+  ]
+}

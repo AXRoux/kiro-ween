@@ -70,6 +70,11 @@
   - [x] 10.4 Ghost window hidden on `minimize`, shown (inactive) on `restore`; destroyed when castle closes
   - [x] 10.5 IPC verdict relay: `App.tsx` → preload → `ipcMain` → `ghosts.webContents.send` → `GhostsWindow`
   - [x] 10.6 `GhostsWindow` exported from `Ghosts.tsx`; loaded from `app://trick-or-read/?ghosts`
+  - [x] 10.7 `.kiro/hooks/desktop-click-guard.json` guards this fix: PostFileSave on `electron/main.ts`,
+        `electron/preload.ts` and `src/components/Ghosts.tsx` runs an agent that checks the castle window never
+        calls `setIgnoreMouseEvents`, the ghost window is a non-focusable child with `setIgnoreMouseEvents(true)`
+        called once and never toggled, `placeGhosts` uses HALO (110, 32, 8) and the zoom factor, and
+        `GhostsWindow` renders nothing interactive
 
 - [x] 11. Tests and checks
   - [x] 11.1 `src/lib/haunt.ts`: pure `haunt(n, rng?)` generator extracted from `Ghosts.tsx`; geometry constants
