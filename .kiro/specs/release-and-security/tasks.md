@@ -2,49 +2,49 @@
 
 ## Group 1 — Security hardening (with tests)
 
-- [ ] 1.1 Fix default bind address (Req 1)
-  - [ ] 1.1a In `server/index.ts`, change the `hostname` line to `process.env.HOST || "127.0.0.1"`, removing the
+- [x] 1.1 Fix default bind address (Req 1)
+  - [x] 1.1a In `server/index.ts`, change the `hostname` line to `process.env.HOST || "127.0.0.1"`, removing the
         conditional that produced `0.0.0.0` when `staticDir` was set.
-  - [ ] 1.1b Add a `HOST=` entry with a one-line comment to `.env.example` explaining that `0.0.0.0` is for
+  - [x] 1.1b Add a `HOST=` entry with a one-line comment to `.env.example` explaining that `0.0.0.0` is for
         intentional hosting only.
 
-- [ ] 1.2 Add Content-Security-Policy header (Req 2)
-  - [ ] 1.2a In `server/app.ts`, define a `CSP` string constant with the full policy (default-src, script-src,
+- [x] 1.2 Add Content-Security-Policy header (Req 2)
+  - [x] 1.2a In `server/app.ts`, define a `CSP` string constant with the full policy (default-src, script-src,
         connect-src, img-src, media-src, style-src, font-src, object-src, base-uri, frame-ancestors, form-action).
-  - [ ] 1.2b Add `"content-security-policy": CSP` to the headers of every response whose `content-type` is
+  - [x] 1.2b Add `"content-security-policy": CSP` to the headers of every response whose `content-type` is
         `text/html` in `server/app.ts` (the static-file handler; the HTML fallback path).
-  - [ ] 1.2c In `electron/main.ts`, inside the `protocol.handle("app", ...)` callback, add the same
+  - [x] 1.2c In `electron/main.ts`, inside the `protocol.handle("app", ...)` callback, add the same
         `content-security-policy` header to any response whose resolved file is `index.html`.
-  - [ ] 1.2d Write `tests/csp.test.ts`: call `createApp` with a stub `staticDir`, make a `GET /` request, assert
+  - [x] 1.2d Write `tests/csp.test.ts`: call `createApp` with a stub `staticDir`, make a `GET /` request, assert
         the `content-security-policy` header matches the expected string exactly. Assert the header is absent on
         `GET /api/health`.
 
-- [ ] 1.3 Cross-origin request rejection (Req 3)
-  - [ ] 1.3a In `server/app.ts`, add a `crossOriginCheck(req, serverOrigin)` helper that returns a 403 `Response`
+- [x] 1.3 Cross-origin request rejection (Req 3)
+  - [x] 1.3a In `server/app.ts`, add a `crossOriginCheck(req, serverOrigin)` helper that returns a 403 `Response`
         when `Sec-Fetch-Site` is `cross-site`, or when `Origin` is present and does not start with `serverOrigin`;
         returns `null` otherwise.
-  - [ ] 1.3b Determine `serverOrigin` from `process.env.ORIGIN` when set, otherwise from the `Host` request
+  - [x] 1.3b Determine `serverOrigin` from `process.env.ORIGIN` when set, otherwise from the `Host` request
         header (e.g. `http://127.0.0.1:8787`). Thread it into `createApp` via `AppOptions`.
-  - [ ] 1.3c Call `crossOriginCheck` at the top of both the `/api/identify` and `/api/speak` handlers, before
+  - [x] 1.3c Call `crossOriginCheck` at the top of both the `/api/identify` and `/api/speak` handlers, before
         rate-limit or key checks.
-  - [ ] 1.3d Add a `globalPerMinute?: number` field to `AppOptions`. When set, maintain a module-level rolling
+  - [x] 1.3d Add a `globalPerMinute?: number` field to `AppOptions`. When set, maintain a module-level rolling
         counter for `/api/identify`; return 429 when the cap is exceeded. Wire it from `process.env.RATE_LIMIT`
         in `server/index.ts`.
-  - [ ] 1.3e Add a `RATE_LIMIT=` entry with a comment to `.env.example`.
-  - [ ] 1.3f Write `tests/cors.test.ts` covering: no `Origin` → allowed; matching `Origin` → allowed;
+  - [x] 1.3e Add a `RATE_LIMIT=` entry with a comment to `.env.example`.
+  - [x] 1.3f Write `tests/cors.test.ts` covering: no `Origin` → allowed; matching `Origin` → allowed;
         `Origin: https://evil.example` → 403; `Sec-Fetch-Site: cross-site` → 403;
         `Sec-Fetch-Site: same-origin` → allowed; global cap reached → 429 on the next request.
 
-- [ ] 1.4 Electron navigation and permission guards (Req 4)
-  - [ ] 1.4a In `createWindow()` in `electron/main.ts`, add a `will-navigate` handler on `win.webContents` that
+- [x] 1.4 Electron navigation and permission guards (Req 4)
+  - [x] 1.4a In `createWindow()` in `electron/main.ts`, add a `will-navigate` handler on `win.webContents` that
         calls `event.preventDefault()` for any URL that does not start with `app://trick-or-read/`.
-  - [ ] 1.4b In `createGhosts()`, add the same `will-navigate` handler on `ghosts.webContents`.
-  - [ ] 1.4c In `app.whenReady()`, add a `web-contents-created` handler on `app` that attaches a
+  - [x] 1.4b In `createGhosts()`, add the same `will-navigate` handler on `ghosts.webContents`.
+  - [x] 1.4c In `app.whenReady()`, add a `web-contents-created` handler on `app` that attaches a
         `will-attach-webview` listener calling `event.preventDefault()` on every new `webContents`.
-  - [ ] 1.4d Update `session.defaultSession.setPermissionRequestHandler` to also check that
+  - [x] 1.4d Update `session.defaultSession.setPermissionRequestHandler` to also check that
         `new URL(wc.getURL()).origin === "app://trick-or-read"` before granting `media`.
-  - [ ] 1.4e Update `session.defaultSession.setPermissionCheckHandler` with the same origin check.
-  - [ ] 1.4f Add `ghosts.setWindowOpenHandler(() => ({ action: "deny" }))` inside `createGhosts()`.
+  - [x] 1.4e Update `session.defaultSession.setPermissionCheckHandler` with the same origin check.
+  - [x] 1.4f Add `ghosts.webContents.setWindowOpenHandler(() => ({ action: "deny" }))` inside `createGhosts()`.
 
 ---
 

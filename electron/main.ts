@@ -9,7 +9,7 @@ import { app, BrowserWindow, ipcMain, Menu, protocol, screen, session, shell, sy
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
-import { createApp } from "../server/app";
+import { createApp, CSP } from "../server/app";
 import { DEFAULT_MODELS, type Provider } from "../server/identify";
 
 // The folder holding package.json, dist/ and dist-electron/. Not __dirname: Bun's bundler bakes in the source
@@ -61,6 +61,7 @@ function serve() {
     apiKey: provider === "fal" ? process.env.FAL_KEY : process.env.ANTHROPIC_API_KEY,
     model: process.env.CANDY_MODEL || DEFAULT_MODELS[provider],
     speechKey: process.env.ELEVENLABS_API_KEY,
+    serverOrigin: "app://trick-or-read",
   });
   protocol.handle("app", async (req) => {
     const url = new URL(req.url);
@@ -68,7 +69,13 @@ function serve() {
     const rel = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, "");
     let file = join(DIST, rel === "/" ? "index.html" : rel);
     if (!file.startsWith(DIST) || !existsSync(file)) file = join(DIST, "index.html");
-    return new Response(new Uint8Array(await readFile(file)), { headers: { "content-type": TYPES[extname(file)] ?? "application/octet-stream" } });
+    const isHtml = file.endsWith("index.html");
+    return new Response(new Uint8Array(await readFile(file)), {
+      headers: {
+        "content-type": TYPES[extname(file)] ?? "application/octet-stream",
+        ...(isHtml ? { "content-security-policy": CSP } : {}),
+      },
+    });
   });
 }
 
@@ -168,6 +175,10 @@ function createGhosts(win: BrowserWindow, zoom: number) {
     webPreferences: { zoomFactor: zoom, preload: join(ROOT, "dist-electron", "preload.cjs"), contextIsolation: true, sandbox: true, backgroundThrottling: false },
   });
   ghosts.setIgnoreMouseEvents(true);
+  ghosts.webContents.on("will-navigate", (event, url) => {
+    if (!url.startsWith("app://trick-or-read/")) event.preventDefault();
+  });
+  ghosts.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   ghosts.webContents.on("did-finish-load", () => ghosts?.webContents.setZoomFactor(win.webContents.getZoomFactor()));
   for (const e of ["move", "moved", "resize"] as const) win.on(e as "move", () => placeGhosts(win));
   win.on("show", () => (placeGhosts(win), ghosts?.showInactive()));
@@ -186,8 +197,15 @@ const CAPTURE = process.env.TOR_CAPTURE;
 async function createWindow() {
   // Permission for the camera: macOS asks once, by app name.
   if (process.platform === "darwin" && !CAPTURE) await systemPreferences.askForMediaAccess("camera").catch(() => false);
-  session.defaultSession.setPermissionRequestHandler((_wc, permission, done) => done(permission === "media"));
-  session.defaultSession.setPermissionCheckHandler((_wc, permission) => permission === "media");
+  // Only grant camera/mic to the app's own origin, not any rogue window that might open.
+  session.defaultSession.setPermissionRequestHandler((wc, permission, done) => {
+    try { done(permission === "media" && new URL(wc.getURL()).origin === "app://trick-or-read"); }
+    catch { done(false); }
+  });
+  session.defaultSession.setPermissionCheckHandler((wc, permission) => {
+    try { return permission === "media" && wc != null && new URL(wc.getURL()).origin === "app://trick-or-read"; }
+    catch { return false; }
+  });
 
   const zoom = Math.max(ZOOMS[0]!, Math.min(savedZoom(), maxZoom()));
   const win = new BrowserWindow({
@@ -229,6 +247,9 @@ async function createWindow() {
     const verdict = v === "safe" || v === "ask" || v === "beware" ? v : "none";
     if (ghosts && !ghosts.isDestroyed()) ghosts.webContents.send("castle:verdict", verdict);
   });
+  win.webContents.on("will-navigate", (event, url) => {
+    if (!url.startsWith("app://trick-or-read/")) event.preventDefault();
+  });
   if (!CAPTURE) createGhosts(win, zoom);
   await win.loadURL("app://trick-or-read/");
 }
@@ -238,5 +259,9 @@ app.whenReady().then(() => {
   serve();
   void createWindow();
   app.on("activate", () => BrowserWindow.getAllWindows().length === 0 && void createWindow());
+  // Block any <webview> tag, regardless of which window creates it.
+  app.on("web-contents-created", (_e, wc) => {
+    wc.on("will-attach-webview", (event) => event.preventDefault());
+  });
 });
 app.on("window-all-closed", () => app.quit());

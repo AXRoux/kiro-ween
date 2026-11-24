@@ -18,11 +18,13 @@ const handle = createApp({
   speechKey: process.env.ELEVENLABS_API_KEY,
   staticDir,
   trustProxy: process.env.TRUST_PROXY === "1",
+  globalPerMinute: process.env.RATE_LIMIT ? Number(process.env.RATE_LIMIT) : undefined,
+  serverOrigin: process.env.ORIGIN,
 });
 
 const server = Bun.serve({
   port,
-  hostname: process.env.HOST || (staticDir ? "0.0.0.0" : "127.0.0.1"),
+  hostname: process.env.HOST || "127.0.0.1",
   maxRequestBodySize: 3 * 1024 * 1024,
   fetch: (req, srv) => handle(req, srv.requestIP(req)?.address ?? "unknown"),
 });

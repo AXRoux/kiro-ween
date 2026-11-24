@@ -23,7 +23,31 @@ export interface AppOptions {
   /** Take the client address from X-Forwarded-For (only behind a proxy that overwrites it). */
   trustProxy?: boolean;
   now?: () => number;
+  /**
+   * Optional global cap: max /api/identify requests per minute across all clients.
+   * When unset, no global cap is applied.
+   */
+  globalPerMinute?: number;
+  /**
+   * The server's own origin (e.g. "http://127.0.0.1:8787"). When unset, derived from the
+   * Host request header. Used by crossOriginCheck.
+   */
+  serverOrigin?: string;
 }
+
+/** Content-Security-Policy for all HTML responses. */
+export const CSP =
+  "default-src 'self'; " +
+  "script-src 'self' 'wasm-unsafe-eval'; " +
+  "connect-src 'self' https://world.openfoodfacts.org; " +
+  "img-src 'self' data: blob:; " +
+  "media-src 'self' blob: data: mediastream:; " +
+  "style-src 'self' 'unsafe-inline'; " +
+  "font-src 'self' data:; " +
+  "object-src 'none'; " +
+  "base-uri 'none'; " +
+  "frame-ancestors 'none'; " +
+  "form-action 'self'";
 
 const SECURITY_HEADERS = {
   "x-content-type-options": "nosniff",
@@ -33,6 +57,55 @@ const SECURITY_HEADERS = {
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "cache-control": "no-store", ...SECURITY_HEADERS } });
 
+/**
+ * Returns a 403 response when the request comes from a different site, null otherwise.
+ * - Requests with no Origin header are allowed (Electron in-process, curl, tests).
+ * - Sec-Fetch-Site: cross-site is rejected unconditionally.
+ * - When serverOrigin is configured, the Origin header must equal it exactly as a string
+ *   (covers custom schemes like app:// that URL.origin normalises to "null").
+ * - When no serverOrigin is configured: Origin "null" and unparseable Origins are rejected;
+ *   the parsed Origin's host (host:port) must equal the request's Host header, so plain
+ *   http locally and https behind a proxy both work.
+ */
+function crossOriginCheck(req: Request, serverOrigin: string | undefined): Response | null {
+  const fetchSite = req.headers.get("Sec-Fetch-Site");
+  const origin = req.headers.get("Origin");
+  if (fetchSite === "cross-site") {
+    console.warn("cross-origin rejected (Sec-Fetch-Site: cross-site)", origin ?? "(no origin)");
+    return json(403, { error: "cross-site" });
+  }
+  if (!origin) return null; // no Origin → Electron in-process, curl, tests
+
+  if (serverOrigin !== undefined) {
+    // Exact string equality: "https://x.test.evil.net" ≠ "https://x.test", and
+    // "app://trick-or-read" matches itself even though URL.origin returns "null" for it.
+    if (origin !== serverOrigin) {
+      console.warn("cross-origin rejected (bad Origin):", origin, "expected:", serverOrigin);
+      return json(403, { error: "cross-site" });
+    }
+    return null;
+  }
+
+  // No configured serverOrigin: reject opaque origins, then compare host to Host header.
+  if (origin === "null") {
+    console.warn("cross-origin rejected (opaque origin)");
+    return json(403, { error: "cross-site" });
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(origin);
+  } catch {
+    console.warn("cross-origin rejected (unparseable Origin):", origin);
+    return json(403, { error: "cross-site" });
+  }
+  const host = req.headers.get("Host") ?? "";
+  if (parsed.host !== host) {
+    console.warn("cross-origin rejected (Origin host mismatch):", parsed.host, "vs Host:", host);
+    return json(403, { error: "cross-site" });
+  }
+  return null;
+}
+
 export function createApp(opts: AppOptions) {
   const provider: Provider = opts.provider ?? "anthropic";
   const model = opts.model || DEFAULT_MODELS[provider];
@@ -41,6 +114,9 @@ export function createApp(opts: AppOptions) {
   const speechPerMinute = opts.speechPerMinute ?? 60;
   const speaker = opts.speechKey ? createSpeaker({ apiKey: opts.speechKey, fetch: opts.fetch ?? fetch }) : null;
   const buckets = { identify: new Map<string, number[]>(), speak: new Map<string, number[]>() };
+  // Global cap counter is per-instance so two createApp calls don't share state.
+  let globalHits = 0;
+  let globalWindowStart = 0;
 
   const limited = (bucket: keyof typeof buckets, client: string, max: number): boolean => {
     const hits = buckets[bucket];
@@ -60,6 +136,8 @@ export function createApp(opts: AppOptions) {
 
     if (url.pathname === "/api/speak") {
       if (req.method !== "POST") return json(405, { error: "method" });
+      const blocked = crossOriginCheck(req, opts.serverOrigin);
+      if (blocked) return blocked;
       if (!speaker) return json(503, { error: "no-voice" });
       if (limited("speak", clientOf(req, clientAddress), speechPerMinute)) return json(429, { error: "slow-down" });
       let body: unknown;
@@ -81,6 +159,15 @@ export function createApp(opts: AppOptions) {
 
     if (url.pathname === "/api/identify") {
       if (req.method !== "POST") return json(405, { error: "method" });
+      const blocked = crossOriginCheck(req, opts.serverOrigin);
+      if (blocked) return blocked;
+      // Global cap across all clients.
+      if (opts.globalPerMinute !== undefined) {
+        const t = now();
+        if (t - globalWindowStart >= 60_000) { globalHits = 0; globalWindowStart = t; }
+        globalHits++;
+        if (globalHits > opts.globalPerMinute) return json(429, { error: "slow-down", message: "Too many reads globally. Try again later." });
+      }
       if (limited("identify", clientOf(req, clientAddress), perMinute)) return json(429, { error: "slow-down", message: "Too many reads. Wait a moment." });
       if (!opts.apiKey) return json(503, { error: "no-key", message: "Wrapper reading is not configured on this server." });
       const length = Number(req.headers.get("content-length") ?? 0);
@@ -109,9 +196,14 @@ export function createApp(opts: AppOptions) {
     const rel = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, "");
     const file = Bun.file(join(opts.staticDir, rel === "/" ? "index.html" : rel));
     const target = (await file.exists()) && !rel.endsWith("/") ? file : Bun.file(join(opts.staticDir, "index.html"));
+    const isHtml = target.name?.endsWith("index.html") ?? false;
     const immutable = rel.startsWith("/assets/");
     return new Response(target, {
-      headers: { ...SECURITY_HEADERS, "cache-control": immutable ? "public, max-age=31536000, immutable" : "no-cache" },
+      headers: {
+        ...SECURITY_HEADERS,
+        "cache-control": immutable ? "public, max-age=31536000, immutable" : "no-cache",
+        ...(isHtml ? { "content-security-policy": CSP } : {}),
+      },
     });
   };
 }
