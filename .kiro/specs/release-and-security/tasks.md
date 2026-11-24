@@ -50,26 +50,44 @@
 
 ## Group 2 — Packaging and release workflow
 
-- [ ] 2.1 Add electron-builder configuration (Req 5)
-  - [ ] 2.1a Create `electron-builder.yml` at the repo root with `appId`, `productName`, `directories.output`,
+- [x] 2.1 Add electron-builder configuration (Req 5)
+  - [x] 2.1a Create `electron-builder.yml` at the repo root with `appId`, `productName`, `directories.output`,
         `files`, and targets for mac (dmg, arm64 + x64), win (nsis, x64) and linux (AppImage, x64).
-  - [ ] 2.1b Add `electron-builder` as a dev dependency (`bun add -D electron-builder`).
-  - [ ] 2.1c Add a `"dist:app"` script to `package.json` that runs `bun run build:desktop && electron-builder`.
-  - [ ] 2.1d Add `release/` to `.gitignore`.
+  - [x] 2.1b Add `electron-builder` as a dev dependency (`bun add -D electron-builder`).
+  - [x] 2.1c Add a `"dist:app"` script to `package.json` that runs `bun run build:desktop && electron-builder`.
+  - [x] 2.1d Add `release/` to `.gitignore`.
 
-- [ ] 2.2 GitHub Actions release workflow (Req 5)
-  - [ ] 2.2a Create `.github/workflows/release.yml` that triggers on `push` to tags `v*.*.*`.
-  - [ ] 2.2b Use a matrix of `macos-latest`, `windows-latest` and `ubuntu-latest` runners.
-  - [ ] 2.2c Each matrix job: check out, install Bun (`oven-sh/setup-bun@v2`), `bun install`, `bun run build:desktop`,
+- [x] 2.2 GitHub Actions release workflow (Req 5)
+  - [x] 2.2a Create `.github/workflows/release.yml` that triggers on `push` to tags `v*.*.*`.
+  - [x] 2.2b Use a matrix of `macos-latest`, `windows-latest` and `ubuntu-latest` runners.
+  - [x] 2.2c Each matrix job: check out, install Bun (`oven-sh/setup-bun@v2`), `bun install`, `bun run build:desktop`,
         `bun x electron-builder --publish never`, then upload the contents of `release/` as artefacts.
-  - [ ] 2.2d Add a final job that depends on all matrix jobs, downloads all artefacts and uses
+  - [x] 2.2d Add a final job that depends on all matrix jobs, downloads all artefacts and uses
         `softprops/action-gh-release` to attach them to the Release for the triggering tag.
 
-- [ ] 2.3 CI workflow (Req 7)
-  - [ ] 2.3a Create `.github/workflows/ci.yml` that triggers on `push` (all branches) and `pull_request`.
-  - [ ] 2.3b Single job on `ubuntu-latest`: checkout, `oven-sh/setup-bun@v2`, `bun install --frozen-lockfile`,
+- [x] 2.3 CI workflow (Req 7)
+  - [x] 2.3a Create `.github/workflows/ci.yml` that triggers on `push` (all branches) and `pull_request`.
+  - [x] 2.3b Single job on `ubuntu-latest`: checkout, `oven-sh/setup-bun@v2`, `bun install --frozen-lockfile`,
         `bun test`, `bun run typecheck`.
-  - [ ] 2.3c Confirm `bun test` and `bun run typecheck` both pass locally before merging.
+  - [x] 2.3c Confirm `bun test` and `bun run typecheck` both pass locally before merging.
+
+- [x] 2.5 Fix ghost window not appearing in packaged macOS app
+  - [x] 2.5a Add `revealGhosts(win)` that places the ghost window and calls `showInactive()` when the castle is
+        visible and not minimised.
+  - [x] 2.5b Call `revealGhosts(win)` immediately after `win.show()` in the `ready-to-show` handler.
+  - [x] 2.5c Call `revealGhosts(win)` from the ghost window's `did-finish-load` handler (after setting zoom), so
+        the ghost window shows even if its load completes after the castle's `show` event already fired.
+  - [x] 2.5d Keep the existing `show` and `restore` listeners on the castle window as extra triggers.
+
+- [x] 2.4 Ad-hoc codesign for unsigned macOS builds
+  - [x] 2.4a In `electron-builder.yml`, set `mac.identity: null` to disable electron-builder's signing step and
+        add `afterPack: scripts/adhoc-sign.cjs` at the top level to wire in the hook.
+  - [x] 2.4b Create `scripts/adhoc-sign.cjs`: an `afterPack` hook that calls
+        `codesign --force --deep --sign - --identifier dev.trickorread.app <app>` on macOS and is a no-op on
+        Windows and Linux.
+  - [x] 2.4c Verified with `codesign --verify --deep --strict --verbose=2`: "valid on disk / satisfies its
+        Designated Requirement". `codesign -dv` shows `Identifier=dev.trickorread.app`, `Signature=adhoc`,
+        `Info.plist entries=32`, `Sealed Resources version=2`.
 
 ---
 

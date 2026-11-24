@@ -1,0 +1,54 @@
+appId: dev.trickorread.app
+productName: Trick or Read
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**
+  - dist-electron/**
+  - package.json
+  - "!**/*.map"
+  - "!.env"
+  - "!.env.*"
+  - "!server/**"
+  - "!src/**"
+  - "!tests/**"
+  - "!.kiro/**"
+  - "!docs/**"
+
+afterPack: scripts/adhoc-sign.cjs
+
+mac:
+  category: public.app-category.utilities
+  hardenedRuntime: false
+  # Disable electron-builder's own codesign step.  The afterPack hook
+  # (scripts/adhoc-sign.cjs) applies a full ad-hoc signature instead so
+  # that Info.plist is bound and the resource envelope is complete.
+  identity: null
+  extendInfo:
+    NSCameraUsageDescription: "Trick or Read uses the camera to read Halloween treat wrappers."
+    NSMicrophoneUsageDescription: "Trick or Read can listen for optional voice commands. The microphone is never used without your action."
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+
+linux:
+  category: Utility
+  target:
+    - target: AppImage
+      arch:
+        - x64

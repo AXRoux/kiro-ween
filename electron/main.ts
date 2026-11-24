@@ -153,6 +153,15 @@ function placeGhosts(win: BrowserWindow) {
   ghosts.setBounds({ x: Math.round(b.x - HALO.x * z), y: Math.round(b.y - HALO.top * z), width: Math.round(GHOST_W * z), height: Math.round(GHOST_H * z) });
 }
 
+/** Place and show the ghost window whenever the castle is visible and not minimised. */
+function revealGhosts(win: BrowserWindow) {
+  if (!ghosts || ghosts.isDestroyed() || win.isDestroyed()) return;
+  if (win.isVisible() && !win.isMinimized()) {
+    placeGhosts(win);
+    ghosts.showInactive();
+  }
+}
+
 function createGhosts(win: BrowserWindow, zoom: number) {
   ghosts = new BrowserWindow({
     parent: win,
@@ -179,11 +188,14 @@ function createGhosts(win: BrowserWindow, zoom: number) {
     if (!url.startsWith("app://trick-or-read/")) event.preventDefault();
   });
   ghosts.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  ghosts.webContents.on("did-finish-load", () => ghosts?.webContents.setZoomFactor(win.webContents.getZoomFactor()));
+  ghosts.webContents.on("did-finish-load", () => {
+    ghosts?.webContents.setZoomFactor(win.webContents.getZoomFactor());
+    revealGhosts(win);
+  });
   for (const e of ["move", "moved", "resize"] as const) win.on(e as "move", () => placeGhosts(win));
-  win.on("show", () => (placeGhosts(win), ghosts?.showInactive()));
+  win.on("show", () => revealGhosts(win));
   win.on("minimize", () => ghosts?.hide());
-  win.on("restore", () => (placeGhosts(win), ghosts?.showInactive()));
+  win.on("restore", () => revealGhosts(win));
   win.on("closed", () => {
     if (ghosts && !ghosts.isDestroyed()) ghosts.destroy();
     ghosts = null;
@@ -235,7 +247,7 @@ async function createWindow() {
   menu(win);
   // Chromium can restore its own per-site zoom on load; put ours back.
   win.webContents.on("did-finish-load", () => win.webContents.setZoomFactor(Math.max(ZOOMS[0]!, Math.min(savedZoom(), maxZoom(win)))));
-  win.once("ready-to-show", () => !CAPTURE && win.show());
+  win.once("ready-to-show", () => { if (!CAPTURE) { win.show(); revealGhosts(win); } });
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/.test(url)) void shell.openExternal(url);
     return { action: "deny" };
