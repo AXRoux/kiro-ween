@@ -93,26 +93,26 @@
 
 ## Group 3 — Documentation
 
-- [ ] 3.1 Expand README (Req 6)
-  - [ ] 3.1a Replace the existing "Run it" section with a "Run from source" section listing prerequisites (Bun ≥ 1.x,
+- [x] 3.1 Expand README (Req 6)
+  - [x] 3.1a Replace the existing "Run it" section with a "Run from source" section listing prerequisites (Bun ≥ 1.x,
         a camera), and all commands in order: `bun install`, `cp .env.example .env`, edit `.env`, `bun run dev`.
-  - [ ] 3.1b Add a "Desktop app from source" subsection documenting `bun run app`.
-  - [ ] 3.1c Add a "Download a prebuilt installer" section explaining where to find releases on GitHub and listing
+  - [x] 3.1b Add a "Desktop app from source" subsection documenting `bun run app`.
+  - [x] 3.1c Add a "Download a prebuilt installer" section explaining where to find releases on GitHub and listing
         the user-data `.env` paths for macOS, Windows and Linux.
-  - [ ] 3.1d Add a "First-open steps" note for unsigned installers: macOS right-click Open or
+  - [x] 3.1d Add a "First-open steps" note for unsigned installers: macOS right-click Open or
         `xattr -d com.apple.quarantine <path>`; Windows SmartScreen "More info → Run anyway".
-  - [ ] 3.1e Add a note that the app works without keys (barcodes via Open Food Facts, browser voice).
+  - [x] 3.1e Add a note that the app works without keys (barcodes via Open Food Facts, browser voice).
 
-- [ ] 3.2 Expand `.env.example` (Req 6)
-  - [ ] 3.2a Add `HOST=` with a comment: `# Bind address. Default 127.0.0.1. Set to 0.0.0.0 to listen on all interfaces for hosted use.`
-  - [ ] 3.2b Add `RATE_LIMIT=` with a comment: `# Optional global cap: max requests per minute to /api/identify across all clients. Off by default.`
-  - [ ] 3.2c Add `ORIGIN=` with a comment: `# Your server's origin (e.g. https://example.com). Derived from the Host header if not set.`
+- [x] 3.2 Expand `.env.example` (Req 6)
+  - [x] 3.2a Add `HOST=` with a comment: `# Bind address. Default 127.0.0.1. Set to 0.0.0.0 to listen on all interfaces for hosted use.`
+  - [x] 3.2b Add `RATE_LIMIT=` with a comment: `# Optional global cap: max requests per minute to /api/identify across all clients. Off by default.`
+  - [x] 3.2c Add `ORIGIN=` with a comment: `# Your server's origin (e.g. https://example.com). Derived from the Host header if not set.`
 
-- [ ] 3.3 Add SECURITY.md (Req 8)
-  - [ ] 3.3a Create `SECURITY.md` at the repo root.
-  - [ ] 3.3b Include a "Reporting a vulnerability" section: use GitHub's private vulnerability reporting, or email
+- [x] 3.3 Add SECURITY.md (Req 8)
+  - [x] 3.3a Create `SECURITY.md` at the repo root.
+  - [x] 3.3b Include a "Reporting a vulnerability" section: use GitHub's private vulnerability reporting, or email
         the maintainer; expect a response within 72 hours.
-  - [ ] 3.3c Include a "How API keys are handled" section: keys are environment variables read only in the server
+  - [x] 3.3c Include a "How API keys are handled" section: keys are environment variables read only in the server
         process or the Electron main process; they are never compiled into the browser bundle, never committed to
         git, and never logged; without keys the app works in barcode-only mode so users are not encouraged to share
         keys.

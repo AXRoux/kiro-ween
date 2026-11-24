@@ -50,6 +50,37 @@
   <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
 </p>
 
+## 📦 Download and play
+
+Grab the latest build from the [releases page](https://github.com/AXRoux/kiro-ween/releases/latest).
+
+| Platform | File |
+|---|---|
+| macOS (Apple silicon) | `Trick or Read-<version>-arm64.dmg` |
+| macOS (Intel) | `Trick or Read-<version>.dmg` |
+| Windows | `Trick or Read Setup <version>.exe` |
+| Linux | `Trick or Read-<version>.AppImage` (run `chmod +x` first) |
+
+**First open on an unsigned build**
+
+- **macOS:** right-click the app, choose Open, then click Open in the dialog. Or go to System Settings, Privacy and Security, scroll to the blocked app and click Open Anyway.
+- **Windows:** when SmartScreen appears, click More info, then Run anyway.
+- **Linux:** `chmod +x "Trick or Read-<version>.AppImage"`, then run it.
+
+**It works with no keys at all.** Barcodes are looked up in Open Food Facts and your computer's own voice is used. To add wrapper reading and the ElevenLabs voices, create a `.env` file in the app's settings folder with the same keys as `.env.example`, then restart the app.
+
+| OS | Settings folder |
+|---|---|
+| macOS | `~/Library/Application Support/Trick or Read/.env` |
+| Windows | `%APPDATA%\Trick or Read\.env` |
+| Linux | `~/.config/Trick or Read/.env` |
+
+The keys never leave your computer except to call those services directly. The downloads contain no keys.
+
+<p align="center">
+  <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
+</p>
+
 ## 🎃 How it works
 
 1. **Open the gate.** One big button, already focused: it starts the camera and lets the castle speak. The portcullis
@@ -147,21 +178,47 @@ Esc stop talking. With voice commands on: "scan", "repeat", "more", "haul", "hel
   <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
 </p>
 
-## 🧪 Run it
+## 🧪 Run from source
+
+**Prerequisites:** [Bun](https://bun.sh) 1.1 or newer, a camera.
 
 ```sh
+git clone https://github.com/AXRoux/kiro-ween.git
+cd kiro-ween
 bun install
-cp .env.example .env     # FAL_KEY (or ANTHROPIC_API_KEY) for wrapper reading, ELEVENLABS_API_KEY for the voice
-bun run dev              # http://localhost:5173
+cp .env.example .env   # optional: add keys for wrapper reading and the ElevenLabs voice
+bun run dev            # browser at http://localhost:5173
 ```
+
 Without keys it still works: barcodes via Open Food Facts, and the browser's built-in voice.
 
-Production: `bun run build && bun run start` serves the app and the API on one port (`PORT`, default 8787).
+**Desktop app from source:**
+
+```sh
+bun run app            # builds and opens the castle as a desktop window
+bun run dist:app       # builds installers into release/
+```
+
+**Production web server:**
+
+```sh
+bun run build && bun run start   # serves on 127.0.0.1:8787
+```
+
+By default the server listens on `127.0.0.1` only. Set `HOST=0.0.0.0` only when hosting behind your own proxy, and set `ORIGIN` and `RATE_LIMIT` then too (see `.env.example`).
 
 ```sh
 bun test            # verdict rules, safety wording, allergens, stillness detector, haptics, server
 bun run typecheck
 ```
+
+<p align="center">
+  <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
+</p>
+
+## 🔒 Security
+
+API keys live only in the server process or the desktop app's main process. They are never bundled into the page, never committed to git, and the downloads contain none. The API rejects requests from any other origin (same-origin check on every `/api/` call) and is rate-limited. The server listens on `127.0.0.1` by default, so it is not reachable from the network unless you deliberately set `HOST=0.0.0.0`. Every HTML response carries a strict Content-Security-Policy. The desktop app cannot navigate away from its own origin or open other sites. See [SECURITY.md](SECURITY.md) for the full hardening list and how to report a vulnerability.
 
 <p align="center">
   <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
