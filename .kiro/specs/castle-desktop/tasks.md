@@ -71,7 +71,7 @@
   - [x] 10.5 IPC verdict relay: `App.tsx` → preload → `ipcMain` → `ghosts.webContents.send` → `GhostsWindow`
   - [x] 10.6 `GhostsWindow` exported from `Ghosts.tsx`; loaded from `app://trick-or-read/?ghosts`
 
-- [ ] 11. Tests and checks
+- [x] 11. Tests and checks
   - [x] 11.1 `src/lib/haunt.ts`: pure `haunt(n, rng?)` generator extracted from `Ghosts.tsx`; geometry constants
         `CASE`, `SCREEN`, `HALO`, `ASPECT` defined here (no CSS imports). Position rule: a ghost may overlap the
         stone of the case (turrets) but must never cover the `SCREEN` rectangle, checked at both the start position
@@ -80,6 +80,15 @@
         `Ghosts.tsx` imports from the new module and behaves identically. `tests/haunt.test.ts` generates 2 000
         haunts with a seeded PRNG and asserts the screen-clear rule at start and end, side ghosts face the castle,
         and sky ghosts are smaller than side ghosts. `bun test` and `bun run typecheck` pass.
+  - [x] 11.1a Sky ghost clipping fix: `haunt()` sky ghost y changed to `rand(-10, -4)`. The binding
+        constraint is the end keyframe (100%): `scale(1.06, 1.25)` raises the ghost's top by
+        `0.125 * size * ASPECT`, and the drift adds `dy` (worst case −8), giving
+        `y ≥ −32 + 8 + 6 + 0.125 × 54 × ASPECT ≈ −10.5`, ceiled to −10. The start keyframe's
+        `translate(−0.1dx, −0.1dy)` offset is weaker (worst-case top `y − 26.8`).
+        `tests/haunt.test.ts` replaces `skyWithinHaloVertical` with two helpers — `skyTopOkAtStart`
+        (checks `y − 0.1·dy − 6 ≥ −HALO.top`) and `skyTopOkAtEnd` (checks
+        `y + dy − 6 − 0.125·size·ASPECT ≥ −HALO.top`) — and the two sky-ghost test cases call
+        them separately.
   - [ ] 11.2 End-to-end check of the desktop click path: open the app in Electron, move the mouse over the ghost-
         window area beside the castle, click, and assert that the click is received by whatever is under the ghost
         window (not consumed by the app). Currently not tested.

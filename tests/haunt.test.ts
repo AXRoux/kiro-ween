@@ -49,8 +49,6 @@ function coversScreen(gx: number, gy: number, size: number): boolean {
 
 /**
  * Returns true if the ghost's bounding box lies within the halo window for a side ghost.
- * Sky ghosts are allowed to materialise up to 6 px above the halo top edge (intentional design:
- * they appear to drift in from just above the castle, so rand(-HALO.top - 6, -4) is correct).
  *
  * Side ghost halo bounds (at start position):
  *   x ∈ [-HALO.x, CASE.w + HALO.x]  (right edge of ghost)
@@ -62,6 +60,33 @@ function withinHaloSide(gx: number, gy: number, size: number): boolean {
   const minY = -HALO.top;
   const maxY = CASE.h + HALO.bottom;
   return gx >= minX && gx + size <= maxX && gy >= minY && gy + size * ASPECT <= maxY;
+}
+
+/**
+ * Returns true if the sky ghost's top edge is inside the halo at the start position (0% keyframe),
+ * accounting for the haunt keyframe translate(-0.1*dx, -0.1*dy) offset and the ±6 px float bob.
+ *
+ *   Start top: gy + (-0.1 * ghostDy) - 6 >= -HALO.top
+ *
+ * The -0.1*dy term: at 0% the ghost is nudged up by 0.1*dy when dy is positive (the ghost condenses
+ * from slightly behind its flight path), making the top edge higher than gy - 6 alone.
+ */
+function skyTopOkAtStart(gy: number, ghostDy: number): boolean {
+  return gy - 0.1 * ghostDy - 6 >= -HALO.top;
+}
+
+/**
+ * Returns true if the sky ghost's top edge is inside the halo at the end position (100% keyframe),
+ * accounting for drift, the scale(1.06, 1.25) that raises the top by 0.125*size*ASPECT, and the
+ * ±6 px float bob.
+ *
+ *   End top: gy + dy - 6 - 0.125 * size * ASPECT >= -HALO.top
+ *
+ * The 0.125*size*ASPECT term: scaling height by 1.25 around the centre raises the top edge by
+ * 0.5 * (1.25 - 1) * height = 0.125 * size * ASPECT.
+ */
+function skyTopOkAtEnd(gy: number, dy: number, size: number): boolean {
+  return gy + dy - 6 - 0.125 * size * ASPECT >= -HALO.top;
 }
 
 // ---------------------------------------------------------------------------
@@ -114,10 +139,17 @@ describe("haunt()", () => {
     expect(maxSky).toBeLessThan(minSide);
   });
 
-  it("sky ghosts appear above the battlements (y < 0)", () => {
+  it("sky ghosts stay inside the halo window at the start position, including the 6 px float bob", () => {
     const sky = skyHaunts(200);
     for (const h of sky) {
-      expect(h.y).toBeLessThan(0);
+      expect(skyTopOkAtStart(h.y, h.dy)).toBe(true);
+    }
+  });
+
+  it("sky ghosts stay inside the halo window at the end position (after drift), including the 6 px float bob", () => {
+    const sky = skyHaunts(200);
+    for (const h of sky) {
+      expect(skyTopOkAtEnd(h.y, h.dy, h.size)).toBe(true);
     }
   });
 

@@ -102,12 +102,27 @@ export function haunt(n: number, rng: () => number = Math.random): Haunt {
   const size = rand(40, 54, rng);
   const dx = sign(rng) * rand(50, 110, rng);
   const x = dx > 0 ? rand(40, CASE.w / 2, rng) : rand(CASE.w / 2, CASE.w - 40 - size, rng);
+  // Sky ghosts must stay within the halo at every point in the haunt animation (ghosts.css):
+  //
+  //   Start (0% keyframe): translate(-0.1*dx, -0.1*dy) + ±6 px bob.
+  //     Top at start: y - 0.1*dy - 6 >= -HALO.top
+  //     Worst case (dy = -8): y + 0.8 - 6 >= -32  =>  y >= -26.8
+  //
+  //   End (100% keyframe): drifted by dy, scale(1.06, 1.25) raises top by 0.125*size*ASPECT, + ±6 px bob.
+  //     Top at end: y + dy - 6 - 0.125*size*ASPECT >= -HALO.top
+  //     Worst case (dy = -8, size = 54): y - 8 - 6 - 7.48 >= -32  =>  y >= -10.52  =>  y >= -10
+  //
+  // The end constraint is tighter, so yMin = ceil(-HALO.top + 8 + 6 + 0.125 * 54 * ASPECT) = -10.
+  // yMax = -4 keeps ghosts visibly above the battlements.
+  const dy = rand(-8, 8, rng);
+  const yMin = -10; // -HALO.top + |dy_max| + 6 + 0.125 * size_max * ASPECT, rounded up
+  const yMax = -4;
   return {
     n,
     x,
-    y: rand(-HALO.top - 6, -4, rng),
+    y: rand(yMin, yMax, rng),
     dx,
-    dy: rand(-8, 8, rng),
+    dy,
     size,
     life,
     faceLeft: dx < 0,
