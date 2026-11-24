@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.svg" width="100%" alt="Trick or Read — a talking castle for blind and low-vision trick-or-treaters. Hold a treat to the camera; the castle names it, checks your allergens and tells you if the wrapper is sealed.">
+  <img src="docs/banner.svg" width="100%" alt="Trick or Read: a talking castle for blind and low-vision trick-or-treaters. Hold a treat to the camera and the castle names it, checks your allergens and tells you if the wrapper is sealed.">
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/ElevenLabs-voice-c4b5ff?style=for-the-badge&logo=elevenlabs&logoColor=0f0c18" alt="ElevenLabs">
 </p>
 
-<p align="center"><em>A talking castle for blind and low-vision trick-or-treaters — hold a treat to the camera and the castle names it, checks your allergens and tells you if the wrapper is still sealed.</em></p>
+<p align="center"><em>A talking castle for blind and low-vision trick-or-treaters. Hold a treat to the camera and the castle names it, checks your allergens and tells you if the wrapper is still sealed.</em></p>
 
 <p align="center">
   <img src="docs/divider.svg" width="100%" alt="A ghost between two jack-o'-lanterns">
