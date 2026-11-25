@@ -242,20 +242,38 @@ API keys live only in the server process or the desktop app's main process. They
 
 ## 📜 Built with Kiro
 
-The original [candy-scanner spec](.kiro/specs/candy-scanner), the steering files, the first four hooks and the
-painted-night redesign were written outside Kiro.
+Kiro's part is told plainly here: the original [candy-scanner spec](.kiro/specs/candy-scanner), the steering files,
+the first four hooks, the castle and painted-night redesigns and the demo video were made outside Kiro. Kiro CLI did
+the work below; every change was reviewed, tested and committed separately, so `git log` shows which is which.
 
-Kiro CLI did the following work in this repo:
+**Specs (6 in [`.kiro/specs`](.kiro/specs)).** Kiro wrote
+[`castle-desktop`](.kiro/specs/castle-desktop) and [`painted-gate`](.kiro/specs/painted-gate) from the implemented
+code, then [`release-and-security`](.kiro/specs/release-and-security),
+[`safety-properties`](.kiro/specs/safety-properties) and [`hosted-web`](.kiro/specs/hosted-web) before implementing
+them.
 
-- Wrote [`.kiro/specs/castle-desktop`](.kiro/specs/castle-desktop) from the already-implemented Electron code.
-- Wrote the pure `haunt()` module and its tests, including a fix for the largest ghosts covering the edge of the screen by 8 px.
-- Fixed sky ghosts clipping outside the transparent ghost window during the full animation (drift, bob and vanish).
-- Added the `desktop-click-guard` agent hook, which guarded the two-window Electron setup.
-- Updated the steering files to reflect the painted-night architecture, the haunt module, and the ghost SVG provenance.
-- Reviewed accessibility on Dock, StatusBar and Arch; bumped the status-bar heading to 18 px and hid the idle island in the phone layout.
-- Wrote [`.kiro/specs/painted-gate`](.kiro/specs/painted-gate) documenting the painted-night redesign, updated the steering and hooks, and replaced the obsolete `desktop-click-guard` hook with `scene-guard`.
+**Property-based testing.** Kiro restated the product's safety rules as properties ("a Safe verdict implies a sealed
+wrapper", "an inferred allergen is always said as likely, ask someone to check the label", "adding one of your
+allergens never makes the verdict less strict") and tested each against 2,000 random treats with fast-check. It found
+a real bug: a wrapper the camera couldn't see, with no allergens set, could be called **Safe**. Kiro fixed the rule
+and made the app say why: "I can't see whether the wrapper is sealed. Ask someone to check it."
 
-The five hooks in `.kiro/hooks/` run in the Kiro IDE: `a11y-review` (accessibility check on every UI file save), `test-pure-logic` (runs unit tests when verdict or wording logic changes), `never-say-safe` (guards safety wording), `typecheck-on-stop` (typechecks when the agent stops), and `scene-guard` (guards the painted scene, ghost placement and desktop window).
+**Hooks.** Five in [`.kiro/hooks`](.kiro/hooks): `a11y-review` (accessibility check on every UI save),
+`never-say-safe` (guards the safety wording), `test-pure-logic` (runs the tests when verdict or wording logic
+changes), `typecheck-on-stop`, and `scene-guard` (ghosts never cover the phone; the desktop window never ignores the
+mouse). Kiro CLI applied the accessibility hook while it worked.
+
+**Security and shipping.** From the `release-and-security` spec Kiro hardened the server (local-only by default, an
+exact same-origin check, a Content-Security-Policy, rate limits) and the desktop app (navigation and permission
+guards), set up packaging and the CI and release workflows, enabled GitHub's security features, and shipped v0.1.0,
+v0.2.0 and v0.2.1.
+
+**Reviewing Kiro.** Not everything Kiro did was right first time, and the review mattered: its first origin check
+accepted lookalike domains, its first permission check could never pass for an `app://` page (the camera was always
+refused until 0.2.1), and one of its tests checked a copy of the logic instead of the real module. Each was caught in
+review or testing and fixed.
+
+The hosted web version was specified by Kiro and implemented by hand after Kiro's monthly usage limit was reached.
 
 <p align="center">
   <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
