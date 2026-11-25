@@ -28,6 +28,7 @@
     "barcode-detector": "^3.2.4",
     "electron": "^45.4.1",
     "electron-builder": "^26.18.0",
+    "fast-check": "^4.11.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "typescript": "^7.0.2",

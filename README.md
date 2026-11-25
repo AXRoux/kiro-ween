@@ -107,7 +107,7 @@ The keys never leave your computer except to call those services directly. The d
 | Verdict | When |
 |---|---|
 | **Beware** | one of your allergens is on the label or likely in the treat, or the wrapper is opened, torn or unwrapped |
-| **Ask someone** | you have allergens set but there is no allergen label to read, or the read was unsure |
+| **Ask someone** | you have allergens set but there is no allergen label to read, or the read was unsure, or the camera could not see whether the wrapper is sealed (a barcode alone cannot show that) |
 | **Safe** | sealed, and the label lists none of your allergens |
 
 Allergens from a label are said as facts. Allergens the model infers are said as "likely, ask someone to check the label".

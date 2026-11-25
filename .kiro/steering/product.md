@@ -30,5 +30,5 @@ All of them get the same read, the same allergen check and the same wrapper chec
 
 ## Verdicts
 - **Beware:** an allergen on the user's list is listed or likely, or the wrapper is opened, torn or unwrapped.
-- **Ask someone:** we could not read an allergen label, or the read was uncertain.
+- **Ask someone:** we could not read an allergen label, or the read was uncertain, or the camera could not see whether the wrapper is sealed (a barcode alone cannot show that).
 - **Safe:** sealed, and the label lists none of the user's allergens.

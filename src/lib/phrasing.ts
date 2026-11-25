@@ -39,8 +39,18 @@ export function summary(r: Reading, j: Judgement, mine: Allergen[]): string {
   if (j.verdict === "safe") {
     parts.push(mine.length ? "None of your allergens are on the label." : "No warnings.");
   } else if (j.verdict === "ask") {
-    if (mine.length && !r.allergenListKnown) parts.push("I can't read an allergen label for this one. Ask someone to check it.");
-    else parts.push("I'm not certain about this one. Ask someone to check it.");
+    const unknownWrapper = r.wrapper === "unknown";
+    const noLabel = mine.length > 0 && !r.allergenListKnown;
+    if (unknownWrapper && noLabel) {
+      parts.push("I can't see whether the wrapper is sealed. Ask someone to check it.");
+      parts.push("I can't read an allergen label for this one. Ask someone to check it.");
+    } else if (unknownWrapper) {
+      parts.push("I can't see whether the wrapper is sealed. Ask someone to check it.");
+    } else if (noLabel) {
+      parts.push("I can't read an allergen label for this one. Ask someone to check it.");
+    } else {
+      parts.push("I'm not certain about this one. Ask someone to check it.");
+    }
   }
   return parts.join(" ");
 }
@@ -57,7 +67,10 @@ export function reason(r: Reading, j: Judgement, mine: Allergen[]): string {
     const wrapper = j.wrapperProblem ? (r.wrapper === "unwrapped" ? "it looks unwrapped" : `the wrapper looks ${r.wrapper}`) : "";
     return [found.filter(Boolean).join(", "), wrapper].filter(Boolean).map(sentence).join(" ");
   }
-  if (j.verdict === "ask") return mine.length && !r.allergenListKnown ? "No allergen label to check." : "Not certain about this one.";
+  if (j.verdict === "ask") {
+    if (r.wrapper === "unknown") return "Can't see if it's sealed.";
+    return mine.length && !r.allergenListKnown ? "No allergen label to check." : "Not certain about this one.";
+  }
   return mine.length ? "None of your allergens are on the label." : "No warnings.";
 }
 
