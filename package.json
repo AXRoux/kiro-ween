@@ -1,6 +1,6 @@
 {
   "name": "trick-or-read",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "A talking castle that names your Halloween candy out loud, built for blind and low-vision trick-or-treaters.",
