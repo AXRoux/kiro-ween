@@ -1,0 +1,16 @@
+// Cloudflare Workers: the hosted web version of Trick or Read (spec: .kiro/specs/hosted-web).
+// Keys are secrets, never in this file: wrangler secret put FAL_KEY / ELEVENLABS_API_KEY.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "trick-or-read",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "observability": { "enabled": true }
+}

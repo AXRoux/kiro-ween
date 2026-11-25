@@ -106,13 +106,19 @@ function crossOriginCheck(req: Request, serverOrigin: string | undefined): Respo
   return null;
 }
 
+/**
+ * The global fetch, called as a plain function. Cloudflare Workers throw "Illegal invocation" when fetch is called as
+ * a method of another object (deps.fetch(...)), which is how the speaker and the vision call use it.
+ */
+const callFetch = ((input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => fetch(input, init)) as typeof fetch;
+
 export function createApp(opts: AppOptions) {
   const provider: Provider = opts.provider ?? "anthropic";
   const model = opts.model || DEFAULT_MODELS[provider];
   const perMinute = opts.perMinute ?? 20;
   const now = opts.now ?? Date.now;
   const speechPerMinute = opts.speechPerMinute ?? 60;
-  const speaker = opts.speechKey ? createSpeaker({ apiKey: opts.speechKey, fetch: opts.fetch ?? fetch }) : null;
+  const speaker = opts.speechKey ? createSpeaker({ apiKey: opts.speechKey, fetch: opts.fetch ?? callFetch }) : null;
   const buckets = { identify: new Map<string, number[]>(), speak: new Map<string, number[]>() };
   // Global cap counter is per-instance so two createApp calls don't share state.
   let globalHits = 0;
@@ -181,7 +187,7 @@ export function createApp(opts: AppOptions) {
       const image = parseDataUrl(body.image);
       if (typeof image === "string") return json(400, { error: "bad-image", message: image });
       try {
-        const report = await identify(image, { provider, apiKey: opts.apiKey, model, fetch: opts.fetch ?? fetch });
+        const report = await identify(image, { provider, apiKey: opts.apiKey, model, fetch: opts.fetch ?? callFetch });
         return json(200, report);
       } catch (e) {
         console.error("identify failed:", e instanceof Error ? e.message : e);

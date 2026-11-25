@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "build:desktop": "vite build && bun build electron/main.ts --target=node --format=cjs --outfile=dist-electron/main.cjs --external electron && bun build electron/preload.ts --target=node --format=cjs --outfile=dist-electron/preload.cjs --external electron",
     "app": "bun run build:desktop && electron .",
-    "dist:app": "bun run build:desktop && electron-builder --publish never"
+    "dist:app": "bun run build:desktop && electron-builder --publish never",
+    "deploy:web": "bun run build && wrangler deploy",
+    "dev:web": "bun run build && wrangler dev"
   },
   "dependencies": {},
   "devDependencies": {
