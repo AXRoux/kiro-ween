@@ -19,6 +19,7 @@ let serverVoice: boolean | null = null;
 const audio = typeof Audio !== "undefined" ? new Audio() : null;
 if (audio) audio.preload = "auto";
 const clips = new Map<string, string>(); // text+voice → object URL, kept for the session
+let unlocked = false;
 let current: { cancel: () => void } | null = null;
 const emit = (s: boolean) => listeners.forEach((l) => l(s));
 
@@ -78,7 +79,13 @@ function playServer(text: string): Promise<void> {
         audio.onplaying = () => emit(true);
         audio.onended = () => finish(true);
         audio.onerror = () => finish(false);
-        return audio.play();
+        return audio.play().catch((err: unknown) => {
+          // If play() was interrupted by a concurrent pause() and this clip is still current, retry once.
+          if (!done && err instanceof DOMException && err.name === "AbortError") {
+            return audio.play();
+          }
+          throw err;
+        });
       })
       .catch(() => finish(false));
   });
@@ -157,18 +164,20 @@ export const voice = {
   },
   /** Runs inside the user's first click: browsers only allow sound after a gesture. */
   unlock() {
-    if (audio) {
-      audio.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQxAADB8AhSmxhIIEVCSiJrDCQBTcu3UrAIwUdkRgQbFAZC1CQEwTJ9mjRvBA4UOLD8nKVOWfh+UlK3z/177OXrfOdKl7pyn3Xf//WreyTRUoAWgBgkOAGbZHBgG1OF6zM82DWbZaUmMBptgQhGjsyYqc9ae9XFz280948NMBWInljyzsNRFLPWdnZGWrddDsjK1unuSrVN9jJsK8KuQtQCtMBjCEtImISdNKJOopIpBFpNSMbIHCSRpRR5iakjTiyzLhchUUBwCgyKiweBv/7UsQbg8isVNoMPMjAAAA0gAAABEVFGmgqK////9bP/6XCykxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
-      audio.volume = 0;
-      void audio.play().catch(() => undefined).finally(() => {
-        audio.pause();
-        audio.volume = 1;
-      });
-    }
-    if (browserSpeech()) {
-      const u = new SpeechSynthesisUtterance(" ");
-      u.volume = 0;
-      speechSynthesis.speak(u);
+    if (!unlocked) {
+      unlocked = true;
+      // Use a throwaway element so pause() here can never race with the shared audio's play().
+      if (typeof Audio !== "undefined") {
+        const tmp = new Audio();
+        tmp.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQxAADB8AhSmxhIIEVCSiJrDCQBTcu3UrAIwUdkRgQbFAZC1CQEwTJ9mjRvBA4UOLD8nKVOWfh+UlK3z/177OXrfOdKl7pyn3Xf//WreyTRUoAWgBgkOAGbZHBgG1OF6zM82DWbZaUmMBptgQhGjsyYqc9ae9XFz280948NMBWInljyzsNRFLPWdnZGWrddDsjK1unuSrVN9jJsK8KuQtQCtMBjCEtImISdNKJOopIpBFpNSMbIHCSRpRR5iakjTiyzLhchUUBwCgyKiweBv/7UsQbg8isVNoMPMjAAAA0gAAABEVFGmgqK////9bP/6XCykxBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+        tmp.volume = 0;
+        void tmp.play().catch(() => undefined).finally(() => tmp.pause());
+      }
+      if (browserSpeech()) {
+        const u = new SpeechSynthesisUtterance(" ");
+        u.volume = 0;
+        speechSynthesis.speak(u);
+      }
     }
   },
 };

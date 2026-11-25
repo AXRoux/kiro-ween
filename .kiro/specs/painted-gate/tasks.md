@@ -84,3 +84,24 @@
 
 - [x] 12. Ship
   - [ ] 12.1 Deploy the web build and put the URL in the README
+
+## Fixes after 0.2.0
+
+- [x] F1. Camera always refused in the desktop app: `URL.origin` returns the string `"null"` for non-special
+      schemes (like `app:`), so the permission handlers' origin check never passed. Added
+      `electron/origin.ts` with an exported `isAppUrl(url): boolean` that checks `protocol === "app:"` and
+      `host === "trick-or-read"` directly. Used it in both `setPermissionRequestHandler` and
+      `setPermissionCheckHandler` (the check handler also falls back to its `requestingOrigin` argument when
+      `wc` is null). Added `tests/origin.test.ts`: 8 cases covering accepted URLs and all the rejection
+      variants. All pass.
+
+- [x] F2. Voice falls back to the robotic system voice on the second press: `unlock()` played its silent
+      clip on the shared `audio` element and called `audio.pause()` in a `finally`. When a cached clip was
+      already queued, `playServer` set `audio.src` and called `audio.play()` before `unlock`'s `finally`
+      ran; the stray `pause()` aborted the real play with `AbortError`, which `playServer` treated as a
+      failure and handed to `playBrowser`. Fixed by making `unlock()` use a throwaway `Audio` element (never
+      the shared one) and skip subsequent calls with an `unlocked` flag. Also added a one-shot retry in
+      `playServer`: if `play()` rejects with `AbortError` while the clip is still current (`done` is false),
+      retry `play()` once before falling through to the browser voice. `tests/voice.test.ts` was deleted
+      after review: it tested a copy of the logic written inside the test, not `src/lib/voice.ts`. The fix
+      was verified end to end in the running app (ElevenLabs clips play, no system-voice fallback).

@@ -10,6 +10,7 @@ import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { createApp, CSP } from "../server/app";
 import { DEFAULT_MODELS, type Provider } from "../server/identify";
+import { isAppUrl } from "./origin";
 
 // The folder holding package.json, dist/ and dist-electron/. Not __dirname: Bun's bundler bakes in the source
 // folder's absolute path (electron/), so the preload was never found and the page never knew it was the desktop app.
@@ -141,12 +142,12 @@ async function createWindow() {
   if (process.platform === "darwin" && !CAPTURE) await systemPreferences.askForMediaAccess("camera").catch(() => false);
   // Only grant camera/mic to the app's own origin, not any rogue window that might open.
   session.defaultSession.setPermissionRequestHandler((wc, permission, done) => {
-    try { done(permission === "media" && new URL(wc.getURL()).origin === "app://trick-or-read"); }
-    catch { done(false); }
+    done(permission === "media" && isAppUrl(wc.getURL()));
   });
-  session.defaultSession.setPermissionCheckHandler((wc, permission) => {
-    try { return permission === "media" && wc != null && new URL(wc.getURL()).origin === "app://trick-or-read"; }
-    catch { return false; }
+  session.defaultSession.setPermissionCheckHandler((wc, permission, requestingOrigin) => {
+    if (permission !== "media") return false;
+    if (wc != null) return isAppUrl(wc.getURL());
+    return isAppUrl(requestingOrigin ?? "");
   });
 
   const zoom = Math.max(ZOOMS[0]!, Math.min(savedZoom(), maxZoom()));
