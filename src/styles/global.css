@@ -1,43 +1,56 @@
 /*
- * Design tokens. The costume is a phone-sized app wearing a stone castle for a case. The people using it may be blind
- * or have low vision, so:
- * - every word a person needs is Atkinson Hyperlegible, 18px or larger, at 7:1 contrast or better on every surface;
- * - Cinzel Decorative is only for the carved nameplate, which is aria-hidden (the real heading is plain text);
+ * Design tokens. The costume is a painted Halloween night (the mansion, the moon, the gate) with the app standing in
+ * the gate like a phone. The people using it may be blind or have low vision, so:
+ * - Geist for interface words and headings, Inter for reading, both 18px or larger, at 7:1 contrast or better on every
+ *   surface (checked against the lightest one, --night-3). Atkinson Hyperlegible, designed for low vision, replaces
+ *   both when "Easier-to-read letters" is on (html.hyperlegible);
  * - verdicts are solid blocks of colour with dark ink, a word and an icon, never colour alone;
- * - controls are big (60px and up) and stay in the same places, so they can be found by touch and by memory.
+ * - controls are big (64px and up) and stay in the same places, so they can be found by touch and by memory.
+ * Surfaces follow one pattern, the double bezel: an outer ring with a hairline edge, and an inner surface lit from
+ * above with a faint violet moonlight.
  */
 :root {
-  /* the night inside the screen, darkest first (text below is checked against --night-3, the lightest) */
-  --night-0: #08060d;
-  --night-1: #0f0c18;
-  --night-2: #17131f;
-  --night-3: #1e1929;
-  --night-4: #2c2539;
+  /* the night, darkest first */
+  --night-0: #07060b;
+  --night-1: #0c0a13;
+  --night-2: #14111d;
+  --night-3: #1b1726;
+  --night-4: #2a2338;
   --night-5: #4a4160;
 
-  /* moonlight text: 7:1 or better on every night surface */
-  --moon: #f3efff;   /* 15:1 */
-  --moon-2: #d6cfea; /* 11:1 */
-  --moon-3: #c1b8da; /* 8.9:1 */
+  /* text: 8:1 or better on every surface */
+  --moon: #f5f3ff;   /* 15:1 */
+  --moon-2: #d9d3f0; /* 11:1 */
+  --moon-3: #bdb4dc; /* 8.3:1 */
 
-  /* signal colours: as text on the night, and as fills under dark ink */
-  --spirit: #c4b5ff;      /* idle: violet moonlight */
-  --pumpkin: #ffa54d;     /* the castle's own accent: lanterns, the gate */
-  --alive: #a6ff6e;       /* safe */
-  --hazard: #ffc23a;      /* ask someone */
-  --blood: #ff8f87;       /* beware, as text: 7.5:1 on --night-3 */
-  --blood-fill: #ff6b63;  /* beware, as a fill under ink: 7.2:1 */
-  --ink: #0a0710;
+  /* light sources */
+  --violet: #c9b8ff;          /* moonlight; text-safe */
+  --violet-deep: #8b6cff;     /* glows only */
+  --pumpkin: #ffb46b;         /* lantern light; text-safe */
+  --pumpkin-fill: #ff9a3c;    /* fills under dark ink */
+  --rose: #ff5fa2;            /* the magenta of the bushes; glows only */
 
-  --verdict: var(--spirit);
-  --verdict-glow: rgba(196, 181, 255, 0.32);
+  /* verdicts: as text on the night, and as fills under dark ink */
+  --alive: #a6ff6e;
+  --hazard: #ffc23a;
+  --blood: #ff8f87;
+  --blood-fill: #ff6b63;
+  --ink: #120a04;
+
+  --verdict: var(--violet);
+  --verdict-glow: rgba(167, 139, 250, 0.38);
+
+  /* hairlines and light */
+  --line: rgba(255, 255, 255, 0.08);
+  --line-2: rgba(255, 255, 255, 0.14);
+  --sheen: inset 0 1px 0 rgba(255, 255, 255, 0.09);
 
   /* type */
-  --read: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --carved: "Cinzel Decorative", "Cinzel", Georgia, serif;
-  --t-sm: 1rem;       /* 16px: key caps and the status bar only */
+  --font-ui: "Geist Variable", "Geist", "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-read: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --t-sm: 1rem;       /* 16px: key caps and the status bar dots only */
   --t-md: 1.125rem;   /* 18px: body */
-  --t-lg: 1.25rem;    /* 20px: buttons, status */
+  --t-lg: 1.25rem;    /* 20px: buttons */
   --t-xl: 1.5rem;     /* 24px: treat name */
   --t-2xl: 1.875rem;  /* 30px: verdict */
 
@@ -50,15 +63,24 @@
   --s-6: 32px;
 
   --radius: 14px;
-  --radius-lg: 22px;
+  --radius-lg: 24px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --spring: cubic-bezier(0.3, 1.4, 0.5, 1);
   color-scheme: dark;
 }
 
+/* Easier-to-read letters: Atkinson Hyperlegible everywhere */
+html.hyperlegible {
+  --font-ui: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-read: "Atkinson Hyperlegible", system-ui, sans-serif;
+}
+
 [data-verdict="safe"] { --verdict: var(--alive); --verdict-glow: rgba(166, 255, 110, 0.34); }
 [data-verdict="ask"] { --verdict: var(--hazard); --verdict-glow: rgba(255, 194, 58, 0.38); }
 [data-verdict="beware"] { --verdict: var(--blood-fill); --verdict-glow: rgba(255, 107, 99, 0.45); }
+
+/* an angle that can be animated, for border beams */
+@property --beam { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root { height: 100%; }
@@ -66,14 +88,16 @@ body {
   margin: 0;
   background: var(--night-0);
   color: var(--moon);
-  font: 400 var(--t-md)/1.45 var(--read);
+  font: 400 var(--t-md)/1.5 var(--font-read);
+  font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
 h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { font-family: var(--font-ui); letter-spacing: -0.01em; }
 button { font: inherit; color: inherit; }
 
-/* A white ring with a black halo: it shows on stone, on the night, and on every verdict colour. */
+/* A white ring with a black halo: it shows on the night, on the painting, and on every verdict colour. */
 :focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;
@@ -86,55 +110,79 @@ button { font: inherit; color: inherit; }
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
 }
 
-/* ---- buttons -------------------------------------------------------------------------------------- */
+/* ---- the double bezel: an outer ring, and an inner surface lit from above -------------------------------- */
+.bezel {
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 0 0 1px var(--line), 0 14px 34px -16px rgba(0, 0, 0, 0.8);
+}
+.bezel__inner {
+  height: 100%;
+  border-radius: calc(var(--radius-lg) - 4px);
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(167, 139, 250, 0.12), transparent 60%),
+    linear-gradient(180deg, var(--night-3), var(--night-2));
+  box-shadow: var(--sheen), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ---- buttons ------------------------------------------------------------------------------------------------ */
 .btn {
+  position: relative;
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s-3);
   min-height: 56px;
   padding: 0 var(--s-5);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius);
-  background: var(--night-4);
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #2d2640, #1d1829);
   color: var(--moon);
-  font: 700 var(--t-lg)/1.1 var(--read);
+  font: 600 var(--t-lg)/1.1 var(--font-ui);
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: transform 0.12s var(--ease), background 0.2s;
+  box-shadow: var(--sheen), inset 0 0 0 1px var(--line-2), 0 8px 20px -10px rgba(0, 0, 0, 0.9);
+  transition: transform 0.12s var(--ease), box-shadow 0.2s var(--ease), background 0.2s;
 }
-.btn:hover { background: #3a3249; }
+.btn:hover { background: linear-gradient(180deg, #362e4d, #221c30); box-shadow: var(--sheen), inset 0 0 0 1px rgba(201, 184, 255, 0.35), 0 8px 24px -8px rgba(139, 108, 255, 0.5); }
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-.btn--primary { background: var(--pumpkin); border-color: transparent; color: var(--ink); }
-.btn--primary:hover { background: #ffb86e; }
-.btn--danger { background: transparent; border: 2px solid var(--blood); color: var(--blood); }
+.btn--primary {
+  background: linear-gradient(180deg, #ffc58a, var(--pumpkin-fill) 60%, #f07f22);
+  color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -2px 6px rgba(120, 40, 0, 0.35), 0 10px 28px -10px rgba(255, 140, 40, 0.75);
+}
+.btn--primary:hover { background: linear-gradient(180deg, #ffd3a3, #ffa64f 60%, #f58a2e); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 12px 32px -8px rgba(255, 140, 40, 0.85); }
+.btn--danger { background: transparent; color: var(--blood); box-shadow: inset 0 0 0 2px var(--blood); }
+.btn--danger:hover { background: rgba(255, 107, 99, 0.1); box-shadow: inset 0 0 0 2px var(--blood); }
 .btn--wide { width: 100%; }
 kbd {
   flex: none;
   min-width: 1.9em;
-  padding: 0.15em 0.45em;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(0, 0, 0, 0.45);
+  padding: 0.12em 0.45em;
+  border-radius: 7px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 1px 0 rgba(0, 0, 0, 0.6);
   color: var(--moon);
-  font: 700 var(--t-sm)/1.2 var(--read);
+  font: 600 var(--t-sm)/1.2 var(--font-ui);
   text-align: center;
 }
 /* key caps only help with a keyboard: hide them on touch screens */
 @media (hover: none) and (pointer: coarse) { kbd { display: none; } }
 
-/* ---- icons ---------------------------------------------------------------------------------------- */
-.glyph { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+/* ---- icons -------------------------------------------------------------------------------------------------- */
+.glyph { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ---- the user's own settings win ------------------------------------------------------------------ */
+/* ---- the user's own settings win ---------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
 /* More contrast: flat surfaces, bright edges, no glows behind text. */
 @media (prefers-contrast: more) {
-  :root { --moon-2: var(--moon); --moon-3: var(--moon); --night-4: #000; }
-  .btn, .tile, .card, .arch__cue, .sheet__group { background: #000 !important; border: 2px solid var(--moon) !important; }
-  .btn--primary { background: var(--pumpkin) !important; border-color: var(--pumpkin) !important; }
+  :root { --moon-2: var(--moon); --moon-3: var(--moon); --line: rgba(255, 255, 255, 0.5); }
+  .bezel, .bezel__inner, .btn, .tile, .card, .arch__cue, .sheet__group { background: #000 !important; box-shadow: inset 0 0 0 2px var(--moon) !important; }
+  .btn--primary { background: var(--pumpkin-fill) !important; }
 }
 /* Windows high contrast and similar: let the system colours through, keep every edge visible. */
 @media (forced-colors: active) {
-  .btn, .tile, .card, .card__head, .arch__cue, .island, .sheet__group { border: 2px solid CanvasText; }
+  .btn, .tile, .card, .card__head, .arch__cue, .island, .sheet__group, .bezel { border: 2px solid CanvasText; }
   :focus-visible { outline-color: Highlight; }
 }

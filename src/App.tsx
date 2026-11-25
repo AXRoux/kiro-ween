@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Arch, type Stage } from "./components/Arch";
-import { CASE, Castle, HALO } from "./components/Castle";
+import { Scene, SCENE } from "./components/Scene";
 import { Dock } from "./components/Dock";
 import { Gate } from "./components/Gate";
 import { Haul } from "./components/Haul";
@@ -25,7 +25,7 @@ import { asVoiceStyle, voice } from "./lib/voice";
 import { keepAwake } from "./lib/wakelock";
 import "./styles/app.css";
 
-const DEFAULT_PREFS: Prefs = { allergens: [], output: "voice", voiceStyle: "serena", rate: 1, autoScan: true, sounds: true, haptics: true, listening: false };
+const DEFAULT_PREFS: Prefs = { allergens: [], output: "voice", voiceStyle: "serena", rate: 1, autoScan: true, sounds: true, haptics: true, listening: false, hyperlegible: false };
 const load = <T,>(key: string, fallback: T): T => {
   try {
     const raw = localStorage.getItem(key);
@@ -101,6 +101,7 @@ export function App() {
     else if (p.output !== before.output) say(p.output === "voice" ? "I'll speak for myself." : "Your screen reader will speak for me.");
     else if (p.autoScan !== before.autoScan) say(p.autoScan ? "I'll read on my own when you hold a treat still." : "I'll wait for you to tap the window or press space.");
     else if (p.haptics !== before.haptics) say(p.haptics ? "I'll vibrate with each answer." : "No more vibrating.");
+    else if (p.hyperlegible !== before.hyperlegible) say(p.hyperlegible ? "Easier-to-read letters are on." : "Easier-to-read letters are off.");
   };
 
   useEffect(() => localStorage.setItem("tor.haul", JSON.stringify({ items: haul })), [haul]);
@@ -323,8 +324,8 @@ export function App() {
 
   const verdict = stage === "reading" ? undefined : judgement?.verdict;
   const layout = useLayout();
-  // the desktop app's ghosts live in another window: tell them the verdict, so they glow in its colour
-  useEffect(() => window.castle?.setVerdict(verdict ?? "none"), [verdict]);
+  // Easier-to-read letters: Atkinson Hyperlegible everywhere (global.css)
+  useEffect(() => void document.documentElement.classList.toggle("hyperlegible", prefs.hyperlegible), [prefs.hyperlegible]);
   const haulCount = haul.reduce((n, i) => n + i.count, 0);
 
   return (
@@ -336,9 +337,9 @@ export function App() {
         {assertive}
       </div>
 
-      <div className="stage" style={layout.bare || desktop ? undefined : { width: CASE.w * layout.scale, height: CASE.h * layout.scale }}>
+      <div className="stage" style={layout.bare || desktop ? undefined : { width: SCENE.w * layout.scale, height: SCENE.h * layout.scale }}>
         <div className="stage__inner" style={layout.bare ? undefined : { transform: `scale(${layout.scale})` }}>
-          <Castle desktop={desktop} bare={layout.bare} stage={stage} live={entered} onClose={() => window.castle?.close()} onMinimize={() => window.castle?.minimize()}>
+          <Scene desktop={desktop} bare={layout.bare} stage={stage} live={entered} onClose={() => window.castle?.close()} onMinimize={() => window.castle?.minimize()}>
             <div className="screen" data-live={entered}>
               <StatusBar live={entered} speaking={speaking} listening={entered && prefs.listening} onHush={() => run("hush")} />
               <Arch ref={videoRef} stage={stage} progress={progress} live={entered} autoScan={prefs.autoScan} onRead={() => run("scan")} />
@@ -354,7 +355,7 @@ export function App() {
               />
               <span className="screen__home" aria-hidden="true" />
             </div>
-          </Castle>
+          </Scene>
         </div>
       </div>
 
@@ -367,17 +368,17 @@ export function App() {
 const desktop = typeof window !== "undefined" && Boolean(window.castle?.desktop);
 
 /**
- * How to lay the castle out. The desktop window is always the case's exact size (Electron's zoom resizes the window
- * instead). In a browser the case scales down to fit, but never below 80%. On a phone (a narrow screen) the device
- * already is the phone, so the case comes off and the screen fills the page; the same happens when a low-vision user
- * zooms in past what fits, so text keeps the size they asked for (WCAG 1.4.10).
+ * How to lay the scene out. The desktop window is always the scene's exact size (Electron's zoom resizes the window
+ * instead). In a browser the scene scales down to fit, but never below 80%, so text stays at least that close to the
+ * size it was designed at. On a phone (a narrow screen) the device already is the phone, so the painting comes off
+ * and the screen fills the page; the same happens when a low-vision user zooms in past what fits, so text keeps the
+ * size they asked for (WCAG 1.4.10).
  */
 function useLayout(): { bare: boolean; scale: number } {
   const measure = () => {
     if (desktop) return { bare: false, scale: 1 };
-    if (innerWidth < 560) return { bare: true, scale: 1 };
-    // leave the ghosts some air at the sides and above
-    const scale = Math.min(1, (innerWidth - 2 * HALO.x) / CASE.w, (innerHeight - 24 - HALO.top) / CASE.h);
+    if (innerWidth < 600) return { bare: true, scale: 1 };
+    const scale = Math.min(1, (innerWidth - 24) / SCENE.w, (innerHeight - 24) / SCENE.h);
     return scale < 0.8 ? { bare: true, scale: 1 } : { bare: false, scale };
   };
   const [layout, setLayout] = useState(measure);

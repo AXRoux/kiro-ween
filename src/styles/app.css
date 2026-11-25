@@ -1,12 +1,12 @@
-/* The page around the castle, and the screen inside it. */
+/* The page around the scene, and the screen inside the phone. */
 html, body { background: var(--night-0); }
 html.desktop, html.desktop body { background: transparent; overflow: hidden; }
-.app { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 44px 0 12px; overflow: auto; overflow-x: clip; }
-/* in a browser the castle stands on a hill under the moon */
+.app { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 12px 0; overflow: auto; overflow-x: clip; }
+/* in a browser the painting hangs in a dark room, lit violet from above */
 .app:not(.app--desktop):not(.app--bare) {
   background:
-    radial-gradient(40% 30% at 78% 8%, rgba(220, 210, 255, 0.14), transparent 70%),
-    radial-gradient(120% 60% at 50% 120%, #1c1430, transparent 70%),
+    radial-gradient(50% 40% at 50% 0%, rgba(139, 108, 255, 0.18), transparent 70%),
+    radial-gradient(80% 60% at 50% 110%, rgba(255, 95, 162, 0.08), transparent 70%),
     linear-gradient(180deg, #0b0916, #05040a);
   background-attachment: fixed;
 }
@@ -16,20 +16,27 @@ html.desktop, html.desktop body { background: transparent; overflow: hidden; }
 .stage__inner { transform-origin: top left; }
 
 /*
- * The screen: status bar / window / verdict (takes what's left, scrolls inside) / dock / home bar.
- * In the case it is exactly 392 x 752; bare, it is as tall as its content needs.
+ * The screen: status bar / gate window / verdict (takes what's left, scrolls inside) / dock / home bar.
+ * In the phone it is exactly 392 x 752; bare, it is the viewport's height.
+ * Its sky: violet moonlight from above, a dusky rose glow from below, and a fine grain.
  */
 .screen {
+  position: relative;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   gap: 10px;
   height: 100%;
   background:
-    radial-gradient(90% 40% at 50% 100%, rgba(120, 80, 200, 0.12), transparent 70%),
-    var(--night-1);
+    radial-gradient(90% 35% at 50% 0%, rgba(139, 108, 255, 0.28), transparent 70%),
+    radial-gradient(80% 30% at 50% 100%, rgba(255, 95, 162, 0.12), transparent 70%),
+    linear-gradient(180deg, #120e1c, var(--night-1) 40%, #0b0912);
+}
+.screen::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.06; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 /* On a phone the screen is exactly the viewport, so the dock never moves; the card scrolls inside. Zoomed so far that
    it won't fit (under 620px tall), the page scrolls instead. */
-.castle--bare .screen { height: 100dvh; min-height: 620px; padding: env(safe-area-inset-top) env(safe-area-inset-right) max(8px, env(safe-area-inset-bottom)) env(safe-area-inset-left); }
-.castle--bare .screen__home { display: block; height: 0; margin: 0; }
-.screen__home { justify-self: center; width: 134px; height: 5px; margin: 2px 0 8px; border-radius: 3px; background: rgba(243, 239, 255, 0.55); }
+.scene--bare .screen { height: 100dvh; min-height: 620px; padding: env(safe-area-inset-top) env(safe-area-inset-right) max(8px, env(safe-area-inset-bottom)) env(safe-area-inset-left); }
+.scene--bare .screen__home { display: block; height: 0; margin: 0; }
+.screen__home { justify-self: center; width: 134px; height: 5px; margin: 2px 0 8px; border-radius: 3px; background: rgba(245, 243, 255, 0.6); }

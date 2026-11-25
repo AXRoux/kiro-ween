@@ -15,9 +15,13 @@ export function Gate({ onEnter, problem, busy }: { onEnter: () => void; problem:
         I read your treats aloud.
       </h2>
       <p className="gate__lede">I name each one, warn about your allergens, and check the wrapper.</p>
-      <button ref={button} type="button" className="gate__enter" onClick={onEnter} disabled={busy} data-busy={busy} aria-describedby={problem ? undefined : "gate-note"}>
-        <Key />
-        {busy ? "Opening…" : "Open the gate"}
+      <button ref={button} type="button" className="cta" onClick={onEnter} disabled={busy} data-busy={busy} aria-describedby={problem ? undefined : "gate-note"}>
+        <span className="cta__body">
+          <span className="cta__chip" aria-hidden="true">
+            <Key />
+          </span>
+          {busy ? "Opening…" : "Open the gate"}
+        </span>
       </button>
       {problem ? (
         <p className="gate__problem" role="alert">
@@ -35,7 +39,7 @@ export function Gate({ onEnter, problem, busy }: { onEnter: () => void; problem:
 /** A skeleton key: it turns when the gate opens. */
 function Key() {
   return (
-    <svg className="gate__key" viewBox="0 0 40 40" aria-hidden="true">
+    <svg className="cta__key" viewBox="0 0 40 40" aria-hidden="true">
       <circle cx="12" cy="20" r="7" />
       <circle cx="12" cy="20" r="2.5" />
       <path d="M19 20h17M30 20v6M35 20v4" />

@@ -1,19 +1,33 @@
 /**
- * Pure ghost-appearance generator. No DOM, no React, no CSS imports — safe to unit-test with bun test.
+ * Pure ghost-appearance generator. No DOM, no React, no CSS imports, so it can be unit tested with bun test.
  *
- * A ghost materialises at a random position in the haunted air outside the castle, drifts a short distance
- * over its life, then fades to mist. The position and drift are chosen so the ghost never covers the screen
- * rectangle even at the end of its flight, while still being allowed to overlap the stone of the turrets.
+ * A ghost materialises at a random spot in the painted night on either side of the phone, drifts a short way over
+ * its life, then thins away into mist. Two rules hold for every appearance, through the whole animation (the 0%
+ * keyframe's small step back, the drift, the float bob, and the final stretch as it vanishes):
+ *   - it never covers the phone (PHONE, plus a small margin), so it never sits over anything a person reads;
+ *   - it stays inside the scene, so it is never cut off at the edge of the painting.
+ * Ghosts always face the phone.
  */
 
-/** Case dimensions, in pixels. */
-export const CASE = { w: 460, h: 880 };
-/** The screen rectangle inside the case. */
-export const SCREEN = { x: 34, y: 62, w: 392, h: 752 };
-/** Haunted air outside the case: 110 px each side, 32 px sky strip above, 8 px below. */
-export const HALO = { x: 110, top: 32, bottom: 8 };
-/** Height ÷ width of the ghost silhouette (traced from the Ghost Army insignia). */
+/** The painted scene, in pixels. Mirrored in src/components/Scene.tsx. */
+export const SCENE = { w: 1120, h: 920 };
+/** The phone's frame in the scene. Mirrored in src/components/Scene.tsx. */
+export const PHONE = { x: 354, y: 72, w: 412, h: 776 };
+/** Height over width of the ghost silhouette (traced from the Ghost Army insignia). */
 export const ASPECT = 223.6 / 201.7;
+
+/** How far the animation can carry a ghost beyond its box (ghosts.css): */
+export const MOTION = {
+  /** .ghost__float bobs up and down this far. */
+  bob: 6,
+  /** The haunt keyframes start 10% of the drift back along the path. */
+  lead: 0.1,
+  /** ...and end scaled (1.06, 1.25) around the centre. */
+  stretchX: 0.06,
+  stretchY: 0.25,
+  /** Space kept clear around the phone and inside the scene's edge. */
+  margin: 8,
+};
 
 export interface Haunt {
   /** Changes every appearance so the CSS animation restarts. */
@@ -27,106 +41,73 @@ export interface Haunt {
   size: number;
   /** Seconds from appearing to vanishing. */
   life: number;
-  /** Mirrored, so it faces (and reaches) toward the castle. */
+  /** Mirrored, so it faces (and reaches) left, toward the phone. */
   faceLeft: boolean;
   /** Degrees: negative leans into a climb, positive into a dive. */
   tilt: number;
   alpha: number;
 }
 
-/** Generate a random float in [a, b). */
 const rand = (a: number, b: number, rng: () => number) => a + rng() * (b - a);
-/** Random sign. */
 const sign = (rng: () => number) => (rng() < 0.5 ? -1 : 1);
 
 /**
- * Generate one random ghost appearance outside the castle walls.
- *
- * @param n     - Sequence number passed through to `Haunt.n` so the caller can key animations.
- * @param rng   - Random source; defaults to `Math.random`. Pass a seeded or scripted function for tests.
- *
- * Position rule: a ghost may overlap the stone of the case (turrets), but must never cover the screen
- * (`SCREEN` rectangle). The check is applied at both the start position and the end position
- * (start + dx, start + dy), so the drift does not cause a late overlap.
- *
- * The ghost also stays inside the halo window:
- *   x ∈ [-HALO.x, CASE.w + HALO.x - size]
- *   y ∈ [-HALO.top, CASE.h + HALO.bottom - size * ASPECT]
+ * The box a ghost can occupy at any moment of its animation, in scene pixels: the union of its start (stepped back
+ * by `lead`) and end (drifted) positions, grown by the stretch and the bob. Exported for the tests.
+ */
+export function reach(h: Haunt): { x0: number; y0: number; x1: number; y1: number } {
+  const height = h.size * ASPECT;
+  const sx = (h.size * MOTION.stretchX) / 2;
+  const sy = (height * MOTION.stretchY) / 2;
+  const xs = [h.x - MOTION.lead * h.dx, h.x + h.dx];
+  const ys = [h.y - MOTION.lead * h.dy, h.y + h.dy];
+  return {
+    x0: Math.min(...xs) - sx,
+    x1: Math.max(...xs) + h.size + sx,
+    y0: Math.min(...ys) - sy - MOTION.bob,
+    y1: Math.max(...ys) + height + sy + MOTION.bob,
+  };
+}
+
+/**
+ * One random ghost appearance beside the phone: half the time on the left (where the mansion is), half on the right
+ * (across the moon). Position and drift are chosen inside the allowed band, so `reach()` never touches the phone or
+ * the scene's edge.
  */
 export function haunt(n: number, rng: () => number = Math.random): Haunt {
-  const where = rng();
-  const life = rand(4, 7, rng);
-  const alpha = rand(0.78, 0.95, rng);
+  const left = rng() < 0.5;
+  const life = rand(4.5, 8, rng);
+  const alpha = rand(0.8, 0.95, rng);
+  const size = rand(70, 120, rng);
+  const height = size * ASPECT;
+  const m = MOTION.margin;
+  const sx = (size * MOTION.stretchX) / 2;
+  const sy = (height * MOTION.stretchY) / 2;
 
-  if (where < 0.8) {
-    const left = where < 0.4;
-    const size = rand(62, 100, rng);
-    const h = size * ASPECT;
+  // Drift: mostly up or down along the phone, a little toward it.
+  const dy = sign(rng) * rand(40, 110, rng);
+  const dx = (left ? 1 : -1) * rand(0, 22, rng);
 
-    const dy = sign(rng) * rand(50, 120, rng);
-    const y = dy < 0 ? rand(140, CASE.h - h - 10, rng) : rand(10, CASE.h - h - 140, rng);
-    // Drift toward the castle: left ghosts move right (dx > 0), right ghosts move left (dx < 0).
-    const dx = (left ? 1 : -1) * rand(0, 16, rng);
+  // Horizontal band: the air between the scene's edge and the phone, minus everything the animation adds.
+  const lead = MOTION.lead * Math.abs(dx);
+  const xMin = left ? m + sx + lead : PHONE.x + PHONE.w + m + sx + Math.abs(dx);
+  const xMax = left ? PHONE.x - m - sx - size - Math.abs(dx) : SCENE.w - m - sx - size - lead;
+  // Vertical band: the scene's height, minus the drift (both ways), the bob and the stretch.
+  const up = dy < 0 ? Math.abs(dy) : MOTION.lead * dy;
+  const down = dy > 0 ? dy : MOTION.lead * Math.abs(dy);
+  const yMin = m + sy + MOTION.bob + up;
+  const yMax = SCENE.h - m - sy - MOTION.bob - height - down;
 
-    let x: number;
-    if (left) {
-      // Raw range: (-HALO.x + 2) to (-size * 0.58).
-      // Rule: right edge at end (x + dx + size) must not enter the screen.
-      //   x + dx + size <= SCREEN.x  =>  x <= SCREEN.x - dx - size
-      x = rand(-HALO.x + 2, -size * 0.58, rng);
-      x = Math.min(x, SCREEN.x - dx - size);
-    } else {
-      // Raw range: (CASE.w - size * 0.42) to (CASE.w + HALO.x - size - 2).
-      // Rule: left edge at end (x + dx) must not enter the screen from the right.
-      //   x + dx >= SCREEN.x + SCREEN.w  =>  x >= SCREEN.x + SCREEN.w - dx
-      // (dx is negative here, so -dx is positive, raising the floor.)
-      x = rand(CASE.w - size * 0.42, CASE.w + HALO.x - size - 2, rng);
-      x = Math.max(x, SCREEN.x + SCREEN.w - dx);
-    }
-
-    return {
-      n,
-      x,
-      y,
-      dx,
-      dy,
-      size,
-      life,
-      faceLeft: !left,
-      tilt: dy < 0 ? rand(-22, -8, rng) : rand(10, 26, rng),
-      alpha,
-    };
-  }
-
-  // Sky strip above the battlements: smaller ghosts swooping sideways past the gatehouse.
-  const size = rand(40, 54, rng);
-  const dx = sign(rng) * rand(50, 110, rng);
-  const x = dx > 0 ? rand(40, CASE.w / 2, rng) : rand(CASE.w / 2, CASE.w - 40 - size, rng);
-  // Sky ghosts must stay within the halo at every point in the haunt animation (ghosts.css):
-  //
-  //   Start (0% keyframe): translate(-0.1*dx, -0.1*dy) + ±6 px bob.
-  //     Top at start: y - 0.1*dy - 6 >= -HALO.top
-  //     Worst case (dy = -8): y + 0.8 - 6 >= -32  =>  y >= -26.8
-  //
-  //   End (100% keyframe): drifted by dy, scale(1.06, 1.25) raises top by 0.125*size*ASPECT, + ±6 px bob.
-  //     Top at end: y + dy - 6 - 0.125*size*ASPECT >= -HALO.top
-  //     Worst case (dy = -8, size = 54): y - 8 - 6 - 7.48 >= -32  =>  y >= -10.52  =>  y >= -10
-  //
-  // The end constraint is tighter, so yMin = ceil(-HALO.top + 8 + 6 + 0.125 * 54 * ASPECT) = -10.
-  // yMax = -4 keeps ghosts visibly above the battlements.
-  const dy = rand(-8, 8, rng);
-  const yMin = -10; // -HALO.top + |dy_max| + 6 + 0.125 * size_max * ASPECT, rounded up
-  const yMax = -4;
   return {
     n,
-    x,
-    y: rand(yMin, yMax, rng),
+    x: rand(xMin, Math.max(xMin, xMax), rng),
+    y: rand(yMin, Math.max(yMin, yMax), rng),
     dx,
     dy,
     size,
     life,
-    faceLeft: dx < 0,
-    tilt: rand(4, 14, rng),
+    faceLeft: !left,
+    tilt: dy < 0 ? rand(-20, -6, rng) : rand(8, 24, rng),
     alpha,
   };
 }

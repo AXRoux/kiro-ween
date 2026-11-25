@@ -14,6 +14,8 @@ export interface Prefs {
   sounds: boolean;
   haptics: boolean;
   listening: boolean;
+  /** Atkinson Hyperlegible, designed for low vision, instead of Geist and Inter. */
+  hyperlegible: boolean;
 }
 
 interface Props {
@@ -84,6 +86,13 @@ export function Settings({ open, prefs, listenSupported, hapticsSupported, onCha
           </div>
           <div className="sheet__group">
             <Row type="checkbox" role="switch" label="Use my screen reader instead" detail="The castle stays silent, so nothing is said twice." checked={prefs.output === "screenreader"} onChange={() => onChange({ ...prefs, output: prefs.output === "voice" ? "screenreader" : "voice" })} />
+          </div>
+        </fieldset>
+
+        <fieldset className="sheet__set">
+          <legend>Reading the screen</legend>
+          <div className="sheet__group">
+            <Row type="checkbox" role="switch" label="Easier-to-read letters" detail="Atkinson Hyperlegible, designed for low vision." checked={prefs.hyperlegible} onChange={() => onChange({ ...prefs, hyperlegible: !prefs.hyperlegible })} />
           </div>
         </fieldset>
 

@@ -1,7 +1,6 @@
 /**
- * Trick or Read as a desktop app: a frameless, transparent window shaped like the castle itself: a phone-sized app in a
- * stone case, turrets, battlements and all. A second transparent window, attached to it, holds the ghosts that fly
- * around the outside; it never takes the mouse, so every click either lands on the castle or passes to the desktop.
+ * Trick or Read as a desktop app: a frameless window that is the painted Halloween night itself, with the app standing
+ * in its gate like a phone, ghosts and all. The window is transparent only outside the painting's rounded corners.
  * The page and the API are both served from the app:// scheme in-process (no local port, no browser), so the
  * camera works in a secure context and the keys stay in this main process.
  */
@@ -16,13 +15,9 @@ import { DEFAULT_MODELS, type Provider } from "../server/identify";
 // folder's absolute path (electron/), so the preload was never found and the page never knew it was the desktop app.
 const ROOT = app.getAppPath();
 const DIST = join(ROOT, "dist");
-// The castle window is exactly the case (CASE in src/components/Castle.tsx). The ghost window is the case plus the
-// haunted air around it (HALO), centred on the castle.
-const WIDTH = 460;
-const HEIGHT = 880;
-const HALO = { x: 110, top: 32, bottom: 8 };
-const GHOST_W = WIDTH + 2 * HALO.x;
-const GHOST_H = HEIGHT + HALO.top + HALO.bottom;
+// The window is exactly the painted scene (SCENE in src/components/Scene.tsx).
+const WIDTH = 1120;
+const HEIGHT = 920;
 
 /** Keys from .env next to the app (development) or in the user's app data folder (installed). Never in the bundle. */
 function loadEnv() {
@@ -80,9 +75,8 @@ function serve() {
 }
 
 /**
- * Zoom for low vision. The page is laid out for a 460 x 880 castle, so zooming scales the whole window with it (and
- * the ghosts' window around it): the castle grows on the desktop instead of being cropped. Never larger than the
- * screen; remembered between runs.
+ * Zoom for low vision. The page is laid out for the 1120 x 920 scene, so zooming scales the whole window with it: the
+ * scene grows on the desktop instead of being cropped. Never larger than the screen; remembered between runs.
  */
 const ZOOMS = [0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.25, 1.4, 1.6, 1.8, 2];
 const zoomFile = () => join(app.getPath("userData"), "zoom.json");
@@ -102,8 +96,6 @@ function applyZoom(win: BrowserWindow, wanted: number) {
   const zoom = Math.max(ZOOMS[0]!, Math.min(wanted, maxZoom(win)));
   win.webContents.setZoomFactor(zoom);
   win.setContentSize(Math.round(WIDTH * zoom), Math.round(HEIGHT * zoom));
-  if (ghosts && !ghosts.isDestroyed()) ghosts.webContents.setZoomFactor(zoom);
-  placeGhosts(win);
   writeFileSync(zoomFile(), JSON.stringify({ zoom }));
 }
 function stepZoom(win: BrowserWindow, dir: 1 | -1) {
@@ -135,72 +127,6 @@ function menu(win: BrowserWindow) {
       },
     ]),
   );
-}
-
-/**
- * The ghosts' window. Ghosts fly in the air around the castle, outside its silhouette, so they live in their own
- * transparent window: a child of the castle's window (on macOS it moves and hides with it), centred on it, that
- * permanently ignores the mouse. There is no switching click-through on and off as the cursor moves, so nothing can
- * get stuck: a click on the castle always lands on the castle, and a click in the ghosts' air always reaches whatever
- * is beneath.
- */
-let ghosts: BrowserWindow | null = null;
-
-function placeGhosts(win: BrowserWindow) {
-  if (!ghosts || ghosts.isDestroyed() || win.isDestroyed()) return;
-  const b = win.getContentBounds();
-  const z = win.webContents.getZoomFactor() || 1;
-  ghosts.setBounds({ x: Math.round(b.x - HALO.x * z), y: Math.round(b.y - HALO.top * z), width: Math.round(GHOST_W * z), height: Math.round(GHOST_H * z) });
-}
-
-/** Place and show the ghost window whenever the castle is visible and not minimised. */
-function revealGhosts(win: BrowserWindow) {
-  if (!ghosts || ghosts.isDestroyed() || win.isDestroyed()) return;
-  if (win.isVisible() && !win.isMinimized()) {
-    placeGhosts(win);
-    ghosts.showInactive();
-  }
-}
-
-function createGhosts(win: BrowserWindow, zoom: number) {
-  ghosts = new BrowserWindow({
-    parent: win,
-    width: Math.round(GHOST_W * zoom),
-    height: Math.round(GHOST_H * zoom),
-    useContentSize: true,
-    transparent: true,
-    frame: false,
-    hasShadow: false,
-    resizable: false,
-    movable: false,
-    minimizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    focusable: false,
-    skipTaskbar: true,
-    backgroundColor: "#00000000",
-    title: "Trick or Read ghosts",
-    show: false,
-    webPreferences: { zoomFactor: zoom, preload: join(ROOT, "dist-electron", "preload.cjs"), contextIsolation: true, sandbox: true, backgroundThrottling: false },
-  });
-  ghosts.setIgnoreMouseEvents(true);
-  ghosts.webContents.on("will-navigate", (event, url) => {
-    if (!url.startsWith("app://trick-or-read/")) event.preventDefault();
-  });
-  ghosts.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  ghosts.webContents.on("did-finish-load", () => {
-    ghosts?.webContents.setZoomFactor(win.webContents.getZoomFactor());
-    revealGhosts(win);
-  });
-  for (const e of ["move", "moved", "resize"] as const) win.on(e as "move", () => placeGhosts(win));
-  win.on("show", () => revealGhosts(win));
-  win.on("minimize", () => ghosts?.hide());
-  win.on("restore", () => revealGhosts(win));
-  win.on("closed", () => {
-    if (ghosts && !ghosts.isDestroyed()) ghosts.destroy();
-    ghosts = null;
-  });
-  void ghosts.loadURL("app://trick-or-read/?ghosts");
 }
 
 /** TOR_CAPTURE=/path.png renders the window off-screen and muted, saves it, and quits (for checking the costume). */
@@ -247,22 +173,13 @@ async function createWindow() {
   menu(win);
   // Chromium can restore its own per-site zoom on load; put ours back.
   win.webContents.on("did-finish-load", () => win.webContents.setZoomFactor(Math.max(ZOOMS[0]!, Math.min(savedZoom(), maxZoom(win)))));
-  win.once("ready-to-show", () => { if (!CAPTURE) { win.show(); revealGhosts(win); } });
+  win.once("ready-to-show", () => !CAPTURE && win.show());
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/.test(url)) void shell.openExternal(url);
     return { action: "deny" };
   });
   ipcMain.on("castle:close", () => win.close());
   ipcMain.on("castle:minimize", () => win.minimize());
-  // the castle's verdict, passed on so the ghosts glow in its colour
-  ipcMain.on("castle:verdict", (_e, v: unknown) => {
-    const verdict = v === "safe" || v === "ask" || v === "beware" ? v : "none";
-    if (ghosts && !ghosts.isDestroyed()) ghosts.webContents.send("castle:verdict", verdict);
-  });
-  win.webContents.on("will-navigate", (event, url) => {
-    if (!url.startsWith("app://trick-or-read/")) event.preventDefault();
-  });
-  if (!CAPTURE) createGhosts(win, zoom);
   await win.loadURL("app://trick-or-read/");
 }
 

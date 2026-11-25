@@ -1,19 +1,18 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { CASE, HALO, haunt, type Haunt } from "../lib/haunt";
+import { haunt, type Haunt } from "../lib/haunt";
 import { GHOST_BODY, GHOST_EYES, GHOST_VIEWBOX } from "./ghostShape";
 import "../styles/ghosts.css";
 
 /**
- * Ghosts haunting the castle from outside: in the air to its left and right and in the sky over the battlements. Each
- * one materialises at a random spot, swoops a little way along the walls (leaning into the climb, or diving), and
- * thins away into mist; a moment later it appears somewhere else. Ghosts at the sides always reach toward the castle.
- * Their glow takes the verdict's colour, so they blush red on a Beware.
+ * Ghosts haunting the painted night on either side of the phone: past the mansion on the left, across the moon on
+ * the right. Each one materialises at a random spot, swoops a little way (leaning into the climb, or diving), and
+ * thins away into mist; a moment later it appears somewhere else. They always reach toward the phone and never cover
+ * it (src/lib/haunt.ts). Their glow takes the verdict's colour, so they blush red on a Beware.
  *
- * Pure costume: aria-hidden, they never take a click (the desktop window lets clicks through them to the desktop
- * beneath), and they are not drawn at all under prefers-reduced-motion. Positions are in the case's own pixels,
- * relative to its top-left corner, so negative x is the air to the left of the castle.
+ * Pure costume: aria-hidden, they never take a click, and they are not drawn at all under prefers-reduced-motion.
+ * Positions are in the scene's pixels.
  */
-const COUNT = 4;
+const COUNT = 5;
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
@@ -48,23 +47,6 @@ export function Ghosts() {
       {Array.from({ length: COUNT }, (_, i) => (
         <Ghost key={i} first={i * 1.6 + rand(0.3, 1.1)} />
       ))}
-    </div>
-  );
-}
-
-/**
- * The desktop app's ghost window: transparent, never takes the mouse, sized to the castle plus HALO and kept centred
- * on it by the main process. The ghosts are laid out exactly as they would be around the castle in a browser.
- */
-export function GhostsWindow() {
-  const [verdict, setVerdict] = useState("none");
-  useEffect(() => {
-    document.documentElement.classList.add("ghost-window");
-    window.castle?.onVerdict(setVerdict);
-  }, []);
-  return (
-    <div className="ghost-window__castle" data-verdict={verdict} style={{ left: HALO.x, top: HALO.top, width: CASE.w, height: CASE.h }}>
-      <Ghosts />
     </div>
   );
 }

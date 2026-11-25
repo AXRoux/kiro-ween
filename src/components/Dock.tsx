@@ -65,22 +65,24 @@ export function Dock({ live, hasReading, haulCount, onRepeat, onMore, onHaul, on
 function Tile({ label, keyCap, icon, onClick, disabled = false, badge = 0 }: { label: string; keyCap: string; icon: ReactNode; onClick: () => void; disabled?: boolean; badge?: number }) {
   return (
     <button type="button" className="tile" onClick={onClick} disabled={disabled} aria-keyshortcuts={keyCap}>
-      <span className="tile__icon" aria-hidden="true">
-        <svg viewBox="0 0 32 32" className="glyph">
-          {icon}
-        </svg>
-      </span>
-      <span className="tile__text">
-        <span className="tile__label">
-          {label}
-          {badge ? (
-            <span className="tile__badge">
-              {badge}
-              <span className="sr-only"> {badge === 1 ? "treat" : "treats"}</span>
-            </span>
-          ) : null}
+      <span className="tile__inner">
+        <span className="tile__icon" aria-hidden="true">
+          <svg viewBox="0 0 32 32" className="glyph">
+            {icon}
+          </svg>
         </span>
-        <kbd aria-hidden="true">{keyCap}</kbd>
+        <span className="tile__text">
+          <span className="tile__label">
+            {label}
+            {badge ? (
+              <span className="tile__badge">
+                {badge}
+                <span className="sr-only"> {badge === 1 ? "treat" : "treats"}</span>
+              </span>
+            ) : null}
+          </span>
+          <kbd aria-hidden="true">{keyCap}</kbd>
+        </span>
       </span>
     </button>
   );

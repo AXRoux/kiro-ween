@@ -1,58 +1,84 @@
-/* The verdict card: coloured head (icon, word, reason) / dark body (name, facts), scrolling inside a fixed screen. */
+/* The verdict card, in the double-bezel pattern: coloured head (icon, word, reason) / body (name, facts). */
 .card {
-  display: flex; flex-direction: column;
   min-height: 0;
   margin: 0 var(--s-4);
-  border-radius: var(--radius-lg);
-  background: var(--night-2);
-  border: 1px solid var(--night-4);
+  padding: 3px;
+  border-radius: 26px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 0 0 1px var(--line), 0 16px 34px -18px rgba(0, 0, 0, 0.9);
+  transition: box-shadow 0.4s var(--ease), background 0.4s var(--ease);
+}
+.card__inner {
+  display: flex; flex-direction: column;
+  height: 100%; min-height: 0;
+  border-radius: 23px;
   overflow: hidden;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(167, 139, 250, 0.12), transparent 60%),
+    linear-gradient(180deg, var(--night-3), var(--night-2));
+  box-shadow: var(--sheen), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 .card__head {
+  position: relative;
   flex: none;
-  display: grid; grid-template-columns: 40px 1fr; column-gap: var(--s-3); align-items: center;
+  display: grid; grid-template-columns: 44px 1fr; column-gap: var(--s-3); align-items: center;
   padding: var(--s-3) var(--s-4);
   transition: background 0.4s var(--ease), color 0.4s var(--ease);
 }
-.card__icon { grid-row: span 2; display: grid; place-items: center; width: 40px; height: 40px; }
-.card__icon .glyph { width: 36px; height: 36px; stroke-width: 3; }
-.card__word { font: 700 var(--t-2xl)/1.05 var(--read); }
-.card__why { font: 700 var(--t-md)/1.3 var(--read); }
+.card__icon { grid-row: span 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; }
+.card__icon .glyph { width: 28px; height: 28px; stroke-width: 2.8; }
+.card__word { font: 700 var(--t-2xl)/1.05 var(--font-ui); letter-spacing: -0.025em; }
+.card__why { font: 600 var(--t-md)/1.3 var(--font-read); }
 
-.card[data-verdict="safe"] .card__head { background: var(--alive); color: var(--ink); }
-.card[data-verdict="ask"] .card__head { background: var(--hazard); color: var(--ink); }
+/* the verdicts: solid colour under dark ink, a gloss across the top, the icon in a dark chip */
+.card[data-verdict="safe"] .card__head, .card[data-verdict="ask"] .card__head, .card[data-verdict="beware"] .card__head {
+  color: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+.card[data-verdict="safe"] .card__head { background: radial-gradient(120% 120% at 20% -40%, rgba(255, 255, 255, 0.55), transparent 55%), var(--alive); }
+.card[data-verdict="ask"] .card__head { background: radial-gradient(120% 120% at 20% -40%, rgba(255, 255, 255, 0.55), transparent 55%), var(--hazard); }
 /* beware also carries a striped edge down its left side: a second cue that isn't colour */
 .card[data-verdict="beware"] .card__head {
-  background: linear-gradient(90deg, transparent 12px, var(--blood-fill) 12px), repeating-linear-gradient(-45deg, var(--ink) 0 6px, var(--blood-fill) 6px 12px);
-  color: var(--ink);
+  background: radial-gradient(120% 120% at 20% -40%, rgba(255, 255, 255, 0.45), transparent 55%), linear-gradient(90deg, transparent 12px, var(--blood-fill) 12px), repeating-linear-gradient(-45deg, var(--ink) 0 6px, var(--blood-fill) 6px 12px);
   padding-left: calc(var(--s-4) + 8px);
 }
-.card[data-verdict="beware"] { box-shadow: 0 0 0 2px var(--blood-fill), 0 0 30px rgba(255, 107, 99, 0.35); border-color: transparent; }
-.card[data-verdict="none"] .card__head, .card[data-verdict="reading"] .card__head { border-bottom: 1px solid var(--night-4); }
+.card[data-verdict="safe"] .card__icon, .card[data-verdict="ask"] .card__icon, .card[data-verdict="beware"] .card__icon { background: rgba(18, 10, 4, 0.88); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18); }
+.card[data-verdict="safe"] .card__icon { color: var(--alive); }
+.card[data-verdict="ask"] .card__icon { color: var(--hazard); }
+.card[data-verdict="beware"] .card__icon { color: var(--blood-fill); }
+.card[data-verdict="beware"] { background: linear-gradient(180deg, rgba(255, 107, 99, 0.6), rgba(255, 107, 99, 0.15)); box-shadow: inset 0 0 0 1px rgba(255, 107, 99, 0.6), 0 0 36px -6px rgba(255, 107, 99, 0.55); }
+.card[data-verdict="safe"] { box-shadow: inset 0 0 0 1px rgba(166, 255, 110, 0.35), 0 0 30px -10px rgba(166, 255, 110, 0.45); }
+.card[data-verdict="ask"] { box-shadow: inset 0 0 0 1px rgba(255, 194, 58, 0.4), 0 0 30px -10px rgba(255, 194, 58, 0.45); }
+
+.card[data-verdict="none"] .card__head, .card[data-verdict="reading"] .card__head { border-bottom: 1px solid var(--line); }
 .card[data-verdict="none"] .card__word, .card[data-verdict="reading"] .card__word { font-size: var(--t-xl); }
 .card[data-verdict="none"] .card__why, .card[data-verdict="reading"] .card__why { font-weight: 400; color: var(--moon-2); }
-.card[data-verdict="none"] .card__icon { color: var(--spirit); }
-.card[data-verdict="reading"] .card__icon { color: var(--spirit); animation: blink 0.8s steps(2, jump-none) infinite; }
+.card[data-verdict="none"] .card__icon, .card[data-verdict="reading"] .card__icon {
+  color: var(--violet);
+  background: radial-gradient(80% 80% at 50% 0%, rgba(167, 139, 250, 0.3), transparent 70%), linear-gradient(180deg, #2e2540, #17121f);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 0 16px -4px rgba(139, 108, 255, 0.8);
+}
+.card[data-verdict="reading"] .card__icon { animation: blink 0.8s steps(2, jump-none) infinite; }
 
 .card__body { flex: 1; min-height: 0; overflow: auto; padding: var(--s-3) var(--s-4) var(--s-4); scrollbar-width: thin; scrollbar-color: var(--night-5) transparent; }
 .card__body:focus-visible { outline-offset: -4px; }
-.card__name { font: 700 var(--t-xl)/1.15 var(--read); color: var(--moon); overflow-wrap: anywhere; }
+.card__name { font: 650 var(--t-xl)/1.15 var(--font-ui); letter-spacing: -0.02em; color: var(--moon); overflow-wrap: anywhere; }
 .card__brand { color: var(--moon-2); }
 .card__ward { color: var(--moon); }
-.card__label { color: var(--moon-3); font-weight: 700; }
+.card__label { color: var(--moon-3); font-weight: 600; }
 
 .facts { display: grid; gap: var(--s-2); margin: var(--s-3) 0 0; }
 .facts > div { display: grid; grid-template-columns: 6.2em 1fr; gap: var(--s-2); align-items: baseline; }
-.facts dt { font: 700 var(--t-md)/1.3 var(--read); color: var(--moon-3); }
+.facts dt { font: 600 var(--t-md)/1.3 var(--font-ui); color: var(--moon-3); }
 .facts dd { margin: 0; line-height: 1.35; color: var(--moon); }
 .facts dd.is-warn { color: var(--blood); font-weight: 700; }
 
 .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 1px 10px; border-radius: 999px; background: var(--night-4); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 11px; border-radius: 999px; background: linear-gradient(180deg, #312a42, #241e31); box-shadow: inset 0 0 0 1px var(--line-2); }
 .chip__likely { color: var(--moon-2); }
-.chip--mine { background: var(--blood-fill); color: var(--ink); font-weight: 700; }
+.chip--mine { background: linear-gradient(180deg, #ff8a82, var(--blood-fill)); color: var(--ink); font-weight: 700; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 0 12px -2px rgba(255, 107, 99, 0.6); }
 .chip--mine .chip__likely { color: var(--ink); }
 .chip__icon { width: 18px; height: 18px; stroke-width: 3; }
 
 .howto { margin: var(--s-3) 0 0; padding-left: 1.4em; display: grid; gap: var(--s-1); color: var(--moon-2); }
-.howto li::marker { color: var(--pumpkin); font-weight: 700; }
+.howto li::marker { color: var(--pumpkin); font-weight: 700; font-family: var(--font-ui); }

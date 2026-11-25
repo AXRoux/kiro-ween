@@ -11,7 +11,7 @@ interface Props {
  * The top of the screen, laid out like a phone's: the app's name on the left, the camera and microphone indicators on
  * the right (green while the camera is on, orange while listening for voice commands, as on an iPhone), and in the
  * middle a black pill, like the Dynamic Island, that is the castle's mouth. It opens into a moving wave while the
- * voice speaks, so a companion knows to listen, and tapping it (its label says Stop) stops the voice, as does Esc.
+ * voice speaks, with an iridescent glow rising behind it, so a companion knows to listen, and tapping it (its label says Stop) stops the voice, as does Esc.
  */
 export function StatusBar({ live, speaking, listening, onHush }: Props) {
   return (
@@ -27,6 +27,7 @@ export function StatusBar({ live, speaking, listening, onHush }: Props) {
         aria-keyshortcuts="Escape"
         tabIndex={speaking ? 0 : -1}
       >
+        <span className="island__glow" aria-hidden="true" />
         <span className="island__lens" aria-hidden="true" />
         <span className="island__wave" aria-hidden="true">
           {[0, 1, 2, 3, 4, 5, 6].map((i) => (

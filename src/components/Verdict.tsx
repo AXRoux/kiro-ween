@@ -27,6 +27,7 @@ export function Verdict({ reading, judgement, mine, busy }: Props) {
       <h2 id="card-title" className="sr-only">
         Reading
       </h2>
+      <div className="card__inner">
       <div className="card__head">
         <span className="card__icon" aria-hidden="true">
           {state === "safe" ? <Check /> : state === "ask" ? <Question /> : state === "beware" ? <Skull /> : <Eye />}
@@ -99,6 +100,7 @@ export function Verdict({ reading, judgement, mine, busy }: Props) {
             </ol>
           </>
         )}
+      </div>
       </div>
     </section>
   );

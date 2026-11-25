@@ -1,5 +1,5 @@
-/* Ghosts around the outside of the castle. Positioned in the case's pixels, so they can sit at negative offsets. */
-.ghosts { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: visible; }
+/* Ghosts in the painted night around the phone. Positioned in the scene's pixels. */
+.ghosts { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 .ghosts__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 .ghost {
@@ -33,7 +33,3 @@
 
 @media (prefers-reduced-motion: reduce) { .ghosts { display: none; } }
 @media (forced-colors: active) { .ghosts { display: none; } }
-
-/* the desktop app's ghost window: nothing but transparent air and ghosts */
-html.ghost-window, html.ghost-window body { background: transparent; overflow: hidden; }
-.ghost-window__castle { position: absolute; pointer-events: none; }
