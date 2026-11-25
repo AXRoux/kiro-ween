@@ -82,5 +82,5 @@
         switch; decorative layers list updated to painting layers
   - [x] 11.6 `.kiro/specs/castle-desktop/requirements.md`: superseded notice added at the top
 
-- [ ] 12. Ship
+- [x] 12. Ship
   - [ ] 12.1 Deploy the web build and put the URL in the README
