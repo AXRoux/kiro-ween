@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.svg" width="100%" alt="Trick or Read: a talking castle for blind and low-vision trick-or-treaters. Hold a treat to the camera and the castle names it, checks your allergens and tells you if the wrapper is sealed.">
+  <img src="docs/banner.svg" width="100%" alt="Trick or Read: a haunted Halloween night with the app standing in the gate. The mansion is on the left, the giant lavender moon on the right, ghosts drifting past.">
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/ElevenLabs-voice-c4b5ff?style=for-the-badge&logo=elevenlabs&logoColor=0f0c18" alt="ElevenLabs">
 </p>
 
-<p align="center"><em>A talking castle for blind and low-vision trick-or-treaters. Hold a treat to the camera and the castle names it, checks your allergens and tells you if the wrapper is still sealed.</em></p>
+<p align="center"><em>A talking Halloween night for blind and low-vision trick-or-treaters. Hold a treat to the camera and the castle names it, checks your allergens and tells you if the wrapper is still sealed.</em></p>
 
 <p align="center">
   <img src="docs/divider.svg" width="100%" alt="A ghost between two jack-o'-lanterns">
@@ -24,20 +24,22 @@
 <p align="center">
   <table>
     <tr>
-      <td align="center">
-        <img src="docs/screens/castle-gate.png" width="300" alt="The castle with the gate closed and ghosts drifting outside the walls"><br>
-        <sub>Gate closed, ghosts outside</sub>
+      <td align="center" colspan="2">
+        <img src="docs/screens/scene-gate.jpg" width="430" alt="The painted Halloween night: the haunted mansion on the left, the giant lavender moon on the right, the app standing in the iron gate between stone pillars, the gate doors closed"><br>
+        <sub>Gate closed, the painted night around the app</sub>
       </td>
-      <td align="center">
-        <img src="docs/screens/castle-beware.png" width="300" alt="The castle showing a red Beware verdict for peanuts"><br>
+      <td align="center" colspan="2">
+        <img src="docs/screens/scene-beware.jpg" width="430" alt="The same scene with the gate open and a red Beware verdict card showing peanuts"><br>
         <sub>A Beware read: peanuts</sub>
       </td>
-      <td align="center">
-        <img src="docs/screens/phone-safe.png" width="200" alt="The phone layout showing a green Safe verdict with no warnings"><br>
+    </tr>
+    <tr>
+      <td align="center" colspan="2">
+        <img src="docs/screens/phone-safe.jpg" width="220" alt="The phone layout showing a green Safe verdict with no warnings"><br>
         <sub>Phone layout: no warnings</sub>
       </td>
-      <td align="center">
-        <img src="docs/screens/phone-haul.png" width="200" alt="The phone haul sheet listing treats read, warnings first"><br>
+      <td align="center" colspan="2">
+        <img src="docs/screens/phone-haul.jpg" width="220" alt="The phone haul sheet listing treats read, warnings first"><br>
         <sub>Your haul, warnings first</sub>
       </td>
     </tr>
@@ -83,9 +85,9 @@ The keys never leave your computer except to call those services directly. The d
 
 ## 🎃 How it works
 
-1. **Open the gate.** One big button, already focused: it starts the camera and lets the castle speak. The portcullis
-   winds up off the window.
-2. **Hold a treat still.** The castle notices something new in the window, waits until it stops moving, and reads it.
+1. **Open the gate.** One big button, already focused: it starts the camera and lets the app speak. The wrought-iron
+   gate doors swing open in 3D when the camera starts.
+2. **Hold a treat still.** The app notices something new in the window, waits until it stops moving, and reads it.
    No buttons needed. To read on demand, tap the window (the whole window is the button) or press Space.
 3. **Two ways to know what it is.**
    - A **barcode** in view is looked up in [Open Food Facts](https://world.openfoodfacts.org): real label data, real
@@ -126,10 +128,11 @@ Allergens from a label are said as facts. Allergens the model infers are said as
 - **Stop her any time.** While the voice speaks, the pill at the top of the screen opens into a wave marked Stop; tap it
   (or press Esc).
 - **The screen stays awake** while the camera is on, so the camera doesn't stop halfway through a haul.
-- **Your screen reader, if you'd rather.** Switch the castle's voice off and everything goes to VoiceOver, TalkBack or NVDA
+- **Your screen reader, if you'd rather.** Switch the app's voice off and everything goes to VoiceOver, TalkBack or NVDA
   instead (never both, so nothing is said twice).
-- **Low vision.** Atkinson Hyperlegible (designed by the Braille Institute) for everything you read, 18px or larger,
-  7:1 contrast on every surface. Verdicts are solid blocks with an icon and a word, never colour alone. Honors
+- **Low vision.** Interface words use **Geist** and reading text uses **Inter**, both 18px or larger at 7:1 contrast on
+  every surface. Open Settings and turn on **Easier-to-read letters** to switch everything to **Atkinson Hyperlegible**
+  (designed by the Braille Institute). Verdicts are solid blocks with an icon and a word, never colour alone. Respects
   reduced motion, more contrast and forced colours. axe finds no violations.
 
 <p align="center">
@@ -146,24 +149,22 @@ V switches between them; the speed is in Settings. Without an ElevenLabs key the
   <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
 </p>
 
-## 🏰 The costume, and what each piece does
+## 🌕 The costume, and what each piece does
 
 | Piece | Job |
 |---|---|
-| The case | a stone castle wrapped around a phone-shaped app: corner turrets for bumpers, battlements, a gatehouse, ivy, bats and the moon. In the desktop app the castle *is* the window: frameless, transparent, dragged by its stone |
-| Ghosts | in the style of the WWII "Ghost Army" insignia (traced from it, minus the lightning): swooping white figures with a reaching, ragged hand and a tattered hem. They haunt the air outside the walls: each materialises at a random spot, swoops along the castle and thins away into mist, then appears somewhere else. Their glow takes the verdict colour, so they blush red on a Beware. In the desktop app they fly in their own see-through window wrapped around the castle, which never takes the mouse, so clicks always land on the castle or pass to the desktop. They stay away under reduced motion |
-| Portcullis | down across the window until you open the gate; winds up (with a ratchet and a thud) when the camera starts |
-| The window | the camera view in a pointed stone arch, and the Read button. Corner brackets show where to hold the treat |
-| Candlelight on the arch | climbs both sides while you hold steady, meets at the keystone when it reads; a moonbeam sweeps down while it reads |
-| Gatehouse window and arrow slits | the verdict colour: moonlight idle, green safe, amber ask someone, red beware; they flicker while reading |
-| The island | the black pill at the top: opens into a wave in the verdict colour while the voice speaks, so a helper knows to listen |
+| The painting | a 1120 x 920 Halloween night: the haunted mansion and lantern-lit stairs on the left, a giant lavender moon with bats on the right, twisted trees with fairy lights and hanging jack-o'-lanterns, stone pillars, iron fences, magenta bushes and carved pumpkins. The phone stands in the gate between the pillars |
+| The phone | a 412 x 776 frame with a violet rim light; the screen inside (392 x 752) is the app. The painting wraps it on three sides so nothing important sits behind the phone |
+| The moon | a large lavender circle that breathes and halos; bats cross it on staggered loops |
+| The fairy lights and jack-o'-lanterns | every window, lantern and pumpkin in the painting has an animated glow on top of it, flickering for flames and twinkling for string lights |
+| The signal lights | the pillar lantern and the lamp post carry the verdict colour: moonlight idle, green safe, amber ask someone, red beware |
+| The iron gate window | the camera view in a pointed wrought-iron arch; two ornate doors swing open in 3D when the camera starts. Candlelight climbs both sides of the arch while you hold the treat still |
+| The island | the black pill at the top of the screen: opens into a moving wave while the voice speaks, with a glow rising behind it, so a companion knows to listen. Tapping it (or pressing Esc) stops the voice |
 | Verdict card | the verdict as a solid block (icon, word, reason: "Contains peanuts."), then the name and the facts |
-| Haul sheet | a jack-o'-lantern pail of everything read, warnings first |
-| Sounds | ratchet (gate opens), heartbeat (holding still), chime (read), deep toll (beware), creak (nothing seen), all synthesised |
+| Ghosts | in the style of the WWII "Ghost Army" insignia: swooping white figures with a reaching hand and a tattered hem. They haunt the air around the phone, materialising, drifting toward it, and thinning away into mist. Their glow takes the verdict colour, so they blush red on a Beware. They disappear under reduced motion |
+| Sounds | gate creak and swing (gate opens), heartbeat (holding still), chime (safe read), deep toll (beware), creak (nothing seen), all synthesised with Web Audio |
 
-On a phone the case comes off (the device already is the phone) and the screen fills the page. In a browser that's
-zoomed in too far for the case to fit, the same happens, so text keeps the size you asked for. Cmd + / Cmd − make
-the whole castle bigger or smaller in the desktop app.
+On a phone the painting comes off (the device already is the phone) and the screen fills the page. In a browser that is zoomed in too far for the painting to fit at 80%, the same happens, so text keeps the size you asked for. Cmd + / Cmd - make the whole painting bigger or smaller in the desktop app.
 
 <p align="center">
   <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
@@ -173,6 +174,21 @@ the whole castle bigger or smaller in the desktop app.
 
 Space or tap the window: read · R repeat · M more · B haul · S settings · V switch voice · L voice commands · H help ·
 Esc stop talking. With voice commands on: "scan", "repeat", "more", "haul", "help", "stop".
+
+<p align="center">
+  <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
+</p>
+
+## 🎨 About the art
+
+The painting (`src/assets/scene.webp`) was generated for this app using FLUX image models on fal.ai (Flux Kontext and
+FLUX dev image-to-image). It was painted as three panels so the phone slot sits empty in the middle and nothing
+important lands behind the screen. The light sources were found automatically and are listed in
+`src/components/sceneLights.ts`. The inspiration was a Halloween illustration supplied by the owner; it was not used
+as a model input.
+
+The ghost silhouette is traced from the WWII 23rd HQ Special Troops ("Ghost Army") insignia, a US government work in
+the public domain, without its lightning bolts.
 
 <p align="center">
   <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
@@ -195,7 +211,7 @@ Without keys it still works: barcodes via Open Food Facts, and the browser's bui
 **Desktop app from source:**
 
 ```sh
-bun run app            # builds and opens the castle as a desktop window
+bun run app            # builds and opens the painting as a desktop window
 bun run dist:app       # builds installers into release/
 ```
 
@@ -226,19 +242,20 @@ API keys live only in the server process or the desktop app's main process. They
 
 ## 📜 Built with Kiro
 
-The original [candy-scanner spec](.kiro/specs/candy-scanner), the steering files, the first four hooks and the castle
-redesign were written outside Kiro.
+The original [candy-scanner spec](.kiro/specs/candy-scanner), the steering files, the first four hooks and the
+painted-night redesign were written outside Kiro.
 
 Kiro CLI did the following work in this repo:
 
 - Wrote [`.kiro/specs/castle-desktop`](.kiro/specs/castle-desktop) from the already-implemented Electron code.
 - Wrote the pure `haunt()` module and its tests, including a fix for the largest ghosts covering the edge of the screen by 8 px.
 - Fixed sky ghosts clipping outside the transparent ghost window during the full animation (drift, bob and vanish).
-- Added the `desktop-click-guard` agent hook, which guards the two-window Electron setup so the ghost window never takes mouse events.
-- Updated the steering files to reflect the two-window desktop architecture, the haunt module, and the ghost SVG provenance.
+- Added the `desktop-click-guard` agent hook, which guarded the two-window Electron setup.
+- Updated the steering files to reflect the painted-night architecture, the haunt module, and the ghost SVG provenance.
 - Reviewed accessibility on Dock, StatusBar and Arch; bumped the status-bar heading to 18 px and hid the idle island in the phone layout.
+- Wrote [`.kiro/specs/painted-gate`](.kiro/specs/painted-gate) documenting the painted-night redesign, updated the steering and hooks, and replaced the obsolete `desktop-click-guard` hook with `scene-guard`.
 
-The five hooks in `.kiro/hooks/` run in the Kiro IDE: `a11y-review` (accessibility check on every UI file save), `test-pure-logic` (runs unit tests when verdict or wording logic changes), `never-say-safe` (guards safety wording), `typecheck-on-stop` (typechecks when the agent stops), and `desktop-click-guard` (guards the Electron click-through fix).
+The five hooks in `.kiro/hooks/` run in the Kiro IDE: `a11y-review` (accessibility check on every UI file save), `test-pure-logic` (runs unit tests when verdict or wording logic changes), `never-say-safe` (guards safety wording), `typecheck-on-stop` (typechecks when the agent stops), and `scene-guard` (guards the painted scene, ghost placement and desktop window).
 
 <p align="center">
   <img src="docs/divider.svg" width="440" alt="A ghost between two jack-o'-lanterns">
@@ -246,11 +263,11 @@ The five hooks in `.kiro/hooks/` run in the Kiro IDE: `a11y-review` (accessibili
 
 ## 🕸️ Data and privacy
 
-Frames are downscaled to 768 px, sent once per read, and never stored. Label data © Open Food Facts contributors, ODbL.
+Frames are downscaled to 768 px, sent once per read, and never stored. Label data copyright Open Food Facts contributors, ODbL.
 Logos and product names belong to their owners.
 
 MIT licensed.
 
 ---
 
-<p align="center">👻 Made for Kiroween 2026</p>
+<p align="center">Made for Kiroween 2026</p>

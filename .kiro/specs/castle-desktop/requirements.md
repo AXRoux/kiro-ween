@@ -1,3 +1,5 @@
+> Superseded by [.kiro/specs/painted-gate](../painted-gate/requirements.md).
+
 # Requirements: castle desktop
 
 ## Introduction

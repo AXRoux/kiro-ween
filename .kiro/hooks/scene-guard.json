@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Guard the painted scene and ghost placement",
+      "trigger": "PostFileSave",
+      "description": "Prevents regressions to the painted-night layout: ghost coverage, aria-hidden painting layers, phone dimensions, and the single-window desktop setup.",
+      "matcher": "src/components/Scene\\.tsx$|src/components/Ghosts\\.tsx$|src/lib/haunt\\.ts$|electron/main\\.ts$",
+      "action": {
+        "type": "agent",
+        "prompt": "A file that is part of the painted-night costume was just saved. Check all four of these rules and fix any that fail before continuing.\n\n1. Ghosts never cover the phone. Run bun test tests/haunt.test.ts. All five tests must pass: ghosts never cover the phone at any moment of the animation, ghosts stay inside the painted scene, ghosts face the phone and drift toward it, both sides of the scene are used, and ghosts lean into the direction they travel.\n\n2. Painting layers are aria-hidden and stop under reduced motion. In src/components/Scene.tsx, every element inside scene__painting (the img, moon div, bats SVG, lights div, signals div, fog div, violet div) must have aria-hidden=\"true\" on its nearest element that is not the React root, or be a child of a container that carries aria-hidden=\"true\". In src/styles/scene.css, the @media (prefers-reduced-motion: reduce) block must set animation: none and transition: none on .scene__moon, .bat, .light, .signal, .scene__fog, and .scene__violet.\n\n3. The phone screen stays 392 x 752. In src/components/Scene.tsx, the SCREEN constant must be { x: 364, y: 84, w: 392, h: 752 }. The .phone__screen element must not apply any additional width or height that would change these dimensions.\n\n4. The desktop window never calls setIgnoreMouseEvents. Search electron/main.ts for any call to setIgnoreMouseEvents. There must be none. The desktop app uses one window for both the painting and the app; there is no ghost window and no click-through mechanism."
+      }
+    }
+  ]
+}
