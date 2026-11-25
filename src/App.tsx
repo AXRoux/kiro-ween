@@ -22,6 +22,7 @@ import { sounds } from "./lib/sounds";
 import { emptyReading, type Judgement, type Reading } from "./lib/types";
 import { judge } from "./lib/verdict";
 import { asVoiceStyle, voice } from "./lib/voice";
+import { darkWarning, type DarkState } from "./lib/darkness";
 import { keepAwake } from "./lib/wakelock";
 import "./styles/app.css";
 
@@ -253,11 +254,11 @@ export function App() {
     stillRef.current = still;
     let raf = 0;
     let last = 0;
-    let darkSaid = 0;
+    let darkness: DarkState = { dark: false, saidAt: null };
     let wasSteadying = false;
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop);
-      if (now - last < 100) return;
+      if (now - last < 100 || document.hidden) return;
       last = now;
       const video = videoRef.current;
       const pixels = video && sampler.sample(video);
@@ -274,10 +275,9 @@ export function App() {
         haptics.buzz("steady");
       }
       wasSteadying = tick.phase === "steadying";
-      if (tick.phase === "dark" && now - darkSaid > 8000 && !voiceBusy()) {
-        darkSaid = now;
-        void say(TOO_DARK);
-      }
+      const warn = darkWarning(darkness, now, tick.phase === "dark", document.hidden);
+      darkness = warn.next;
+      if (warn.say && !voiceBusy()) void say(TOO_DARK);
       if (tick.fire && prefsRef.current.autoScan) void scan("auto");
     };
     raf = requestAnimationFrame(loop);
