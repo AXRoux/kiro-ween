@@ -141,7 +141,15 @@ html.desktop .scene { box-shadow: none; }
 .orb:active { transform: scale(0.9); }
 
 @media (prefers-reduced-motion: reduce) {
-  .scene { animation: none; }
+  .scene__moon,
+  .bat,
+  .light,
+  .signal,
+  .scene__fog,
+  .scene__violet {
+    animation: none;
+    transition: none;
+  }
 }
 @media (forced-colors: active) {
   .scene__painting { display: none; }
